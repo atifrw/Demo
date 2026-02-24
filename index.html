@@ -23,53 +23,71 @@
     }
     body { font-family: 'Rubik', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 15px; transition: 0.3s; }
     
-    #loginArea { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; text-align: center; }
-    .login-card { background: var(--card-bg); padding: 40px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); border: 1px solid var(--border-color); }
-    .google-btn { background: #4285F4; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px; margin-top: 20px; }
+    /* --- MODERN LOGIN INTERFACE --- */
+    #loginArea { 
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(135deg, #f5f2eb 0%, #e0dcd0 100%);
+      display: flex; align-items: center; justify-content: center; z-index: 9999;
+    }
+    [data-theme="dark"] #loginArea { background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%); }
+
+    .login-glass-card {
+      background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px);
+      border: 1px solid rgba(255, 255, 255, 0.4); padding: 50px 30px;
+      border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+      max-width: 400px; width: 90%; animation: fadeIn 0.8s ease-out;
+    }
+    [data-theme="dark"] .login-glass-card { background: rgba(45, 45, 45, 0.7); border-color: rgba(255, 255, 255, 0.1); }
+
+    .login-brand-icon { font-size: 60px; margin-bottom: 20px; display: block; }
+    .login-glass-card h1 { margin: 0; font-size: 30px; color: var(--text-color); font-weight: 600; }
+    .login-glass-card p { color: #7f8c8d; font-size: 15px; margin: 15px 0 30px 0; line-height: 1.5; }
+
+    .modern-google-btn {
+      background: white; color: #2c3e50; border: 1px solid #ddd; padding: 14px 24px;
+      border-radius: 12px; font-size: 16px; font-weight: 500; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    .modern-google-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-color: #4285F4; }
+    .modern-google-btn svg { width: 22px; height: 22px; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* --- REST OF THE APP STYLES --- */
     .user-profile { display: none; align-items: center; gap: 10px; margin-bottom: 15px; background: var(--card-bg); padding: 10px; border-radius: 50px; border: 1px solid var(--border-color); width: fit-content; }
     .user-profile img { width: 30px; height: 30px; border-radius: 50%; }
-
     .container { max-width: 700px; margin: auto; background: var(--card-bg); padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: relative; border: 1px solid var(--border-color); }
     .progress-container { width: 100%; background: #e0dcd0; height: 8px; border-radius: 5px; margin-bottom: 15px; display: none; }
     #progressBar { height: 100%; width: 0%; background: var(--progress-color); border-radius: 5px; transition: 0.4s; }
-
     .header-btns { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; flex-wrap: wrap; display: none; }
     .header-left { display: flex; align-items: center; gap: 8px; }
-    
     #themeBtn, #quitBtn, #bookmarkActionBtn, #heartActionBtn { padding: 8px 12px; font-size: 13px; background: var(--primary-color); color: white; border: none; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
     #quitBtn { background: #e74c3c; display: none; }
     #bookmarkActionBtn, #heartActionBtn { background: transparent; font-size: 20px; padding: 0; display: none; }
     #bookmarkActionBtn svg, #heartActionBtn svg { width: 28px; height: 28px; fill: none; stroke: var(--text-color); stroke-width: 2; }
     #bookmarkActionBtn.active svg { fill: var(--text-color); }
     #heartActionBtn.active svg { fill: #e74c3c; stroke: #e74c3c; }
-
     .voice-switch { position: relative; display: inline-block; width: 34px; height: 18px; }
     .voice-switch input { opacity: 0; width: 0; height: 0; }
     .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
     .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
     input:checked + .slider { background-color: var(--progress-color); }
     input:checked + .slider:before { transform: translateX(16px); }
-
     #timerDisplay { font-weight: bold; font-size: 18px; color: #e74c3c; display: none; text-align: center; flex-grow: 1; }
     h2 { text-align: center; margin-top: 0; color: var(--primary-color); }
     select, input, .main-btn { padding: 12px; font-size: 16px; margin-bottom: 12px; width: 100%; border-radius: 10px; border: 1px solid var(--border-color); background-color: var(--btn-bg); color: var(--text-color); box-sizing: border-box; }
-
     .challenge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; background: var(--bg-color); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); }
     .challenge-grid label { font-size: 13px; font-weight: bold; margin-bottom: 5px; display: block; }
-
     .question-card { background: var(--question-bg); border-left: 6px solid var(--primary-color); padding: 20px; border-radius: 12px; margin-bottom: 20px; font-size: 24px; font-weight: 550; line-height: 1.5; position: relative; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
     .speak-btn { position: absolute; right: 10px; top: 10px; background: none; border: none; cursor: pointer; font-size: 20px; opacity: 0.6; }
-
     .option-btn { display: block; background: var(--card-bg); border: 2px solid var(--border-color); color: var(--text-color); padding: 14px; margin: 10px 0; border-radius: 10px; cursor: pointer; width: 100%; text-align: left; font-size: 19px; font-weight: 500; transition: 0.2s; }
     .option-btn:hover { border-color: var(--primary-color); background: var(--btn-bg); }
     #nextBtn { display: none; background: #28a745 !important; color: white !important; border: none; text-align: center; margin-top: 15px; width: 100%; padding: 14px; border-radius: 10px; font-size: 18px; cursor: pointer; }
-
     .explanation-box { display: none; background: #eef2f7; border-left: 5px solid #3498db; padding: 15px; margin-top: 15px; border-radius: 8px; font-size: 16px; line-height: 1.6; color: var(--text-color); }
     [data-theme="dark"] .explanation-box { background: #3a3a3a; border-left-color: #8da2b5; }
-
     .backup-area { display: flex; gap: 10px; margin-top: 15px; border-top: 1px dashed var(--border-color); padding-top: 15px; }
     .backup-btn { flex: 1; padding: 10px; font-size: 12px; cursor: pointer; border-radius: 8px; border: 1px solid var(--border-color); background: var(--btn-bg); color: var(--text-color); font-weight: bold; }
-
     .tracker-card, .collection-card { display: none; margin-top: 10px; border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; background: var(--card-bg); }
     .subject-group { margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden; }
     .subject-title { background: var(--primary-color); color: white; padding: 10px; font-weight: bold; }
@@ -83,13 +101,15 @@
 <body>
 
   <div id="loginArea">
-    <div class="login-card">
-        <h2>📖 Quiz 3 Login</h2>
-        <p>क्विज़ शुरू करने के लिए लॉगिन करें</p>
-        <button class="google-btn" onclick="loginWithGoogle()">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="20">
-            Login with Google
+    <div class="login-glass-card">
+        <span class="login-brand-icon">📖</span>
+        <h1>Quiz 3 Pro</h1>
+        <p>Sync your progress, bookmarks, and collections across all your devices.</p>
+        <button class="modern-google-btn" onclick="loginWithGoogle()">
+            <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></svg>
+            Continue with Google
         </button>
+        <div style="margin-top: 30px; font-size: 11px; color: #bdc3c7; letter-spacing: 1px;">SECURE FIREBASE AUTH</div>
     </div>
   </div>
 
