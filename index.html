@@ -104,6 +104,24 @@
     #timerDisplay { font-weight: bold; font-size: 18px; color: #e74c3c; display: none; text-align: center; flex-grow: 1; }
     h2 { text-align: center; margin-top: 0; color: var(--primary-color); }
     select, input, .main-btn { padding: 12px; font-size: 16px; margin-bottom: 12px; width: 100%; border-radius: 10px; border: 1px solid var(--border-color); background-color: var(--btn-bg); color: var(--text-color); box-sizing: border-box; }
+    
+    /* --- NEW GRID BUTTON STYLES (AS PER IMAGE) --- */
+    .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+    .grid-card { display: flex; align-items: center; padding: 12px; border-radius: 15px; border: none; cursor: pointer; text-align: left; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+    .grid-card:hover { transform: scale(1.02); }
+    
+    .orange-card { background: linear-gradient(135deg, #fff9f0 0%, #ffe8cc 100%); color: #d9480f; border: 1px solid #ffdec0; }
+    .blue-card   { background: linear-gradient(135deg, #f0f7ff 0%, #d0ebff 100%); color: #1971c2; border: 1px solid #b2dfff; }
+    .red-card    { background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%); color: #c92a2a; border: 1px solid #ffc9c9; }
+    .yellow-card { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); color: #92400e; border: 1px solid #fde68a; }
+    
+    [data-theme="dark"] .grid-card { opacity: 0.9; }
+
+    .card-icon { font-size: 28px; margin-right: 12px; }
+    .card-content { display: flex; flex-direction: column; }
+    .card-title { font-weight: 600; font-size: 14px; }
+    .card-sub { font-size: 10px; opacity: 0.7; margin-top: 2px; line-height: 1.2; }
+
     .challenge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; background: var(--bg-color); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); }
     .challenge-grid label { font-size: 13px; font-weight: bold; margin-bottom: 5px; display: block; }
     .question-card { background: var(--question-bg); border-left: 6px solid var(--primary-color); padding: 20px; border-radius: 12px; margin-bottom: 20px; font-size: 24px; font-weight: 550; line-height: 1.5; position: relative; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
@@ -123,6 +141,10 @@
     .status-green { background: #2ecc71; }
     .status-yellow { background: #f1c40f; }
     .status-red { background: #e74c3c; }
+
+    @media (max-width: 500px) {
+      .button-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
@@ -189,10 +211,38 @@
           <div><label>मिनट:</label><input type="number" id="customTime" placeholder="5"></div>
         </div>
         <button class="main-btn" onclick="startQuiz()" style="background: #5d6d7e; color: white;">🎯 क्विज़ शुरू करें</button>
-        <button id="weakAreasBtn" class="main-btn" style="background: #e67e22; color: white; display: none;" onclick="startWeakAreasQuiz()">🔄 Improve Weak Areas (<span id="weakCount">0</span>)</button>
-        <button id="collectionMainBtn" class="main-btn" style="background: #e74c3c; color: white; display: none;" onclick="toggleCollection()">❤️ My Collections (Subject-wise)</button>
-        <button class="main-btn" onclick="toggleTracker()" style="background: #3498db; color: white;">📊 Revision Tracker</button>
-        <button id="savedPracticeBtn" class="main-btn" style="background:#f1c40f; color:#000; display:none;" onclick="startSavedPractice()">⭐ सहेजे गए सवाल</button>
+        
+        <div class="button-grid">
+            <button id="weakAreasBtn" class="grid-card orange-card" style="display:none;" onclick="startWeakAreasQuiz()">
+                <div class="card-icon">🎯</div>
+                <div class="card-content">
+                    <div class="card-title">कमजोर क्षेत्रों में सुधार करें (<span id="weakCount">0</span>)</div>
+                    <div class="card-sub">Focus on your weak areas & improve them.</div>
+                </div>
+            </button>
+            <button id="collectionMainBtn" class="grid-card blue-card" style="display:none;" onclick="toggleCollection()">
+                <div class="card-icon">📚</div>
+                <div class="card-content">
+                    <div class="card-title">मेरे संग्रह (विषयवार)</div>
+                    <div class="card-sub">Organize & review questions by subject.</div>
+                </div>
+            </button>
+            <button class="grid-card red-card" onclick="toggleTracker()">
+                <div class="card-icon">📊</div>
+                <div class="card-content">
+                    <div class="card-title">रिवीजन ट्रैकर</div>
+                    <div class="card-sub">Monitor your scores and track progress.</div>
+                </div>
+            </button>
+            <button id="savedPracticeBtn" class="grid-card yellow-card" style="display:none;" onclick="startSavedPractice()">
+                <div class="card-icon">⭐</div>
+                <div class="card-content">
+                    <div class="card-title">सहेजे गए सवाल</div>
+                    <div class="card-sub">Practice your bookmarked questions.</div>
+                </div>
+            </button>
+        </div>
+
         <div class="backup-area">
           <button class="backup-btn" onclick="exportData()">📤 Backup Data</button>
           <button class="backup-btn" onclick="document.getElementById('importFile').click()">📥 Restore Data</button>
@@ -233,7 +283,6 @@
     let savedList = [], revisionDates = {}, weakList = [], collections = {};
     let isGuest = false;
 
-    // --- UPDATED AUTH FOR PERSISTENT GUEST DATA ---
     auth.onAuthStateChanged((user) => {
         const up = document.getElementById("userProfile");
         const guestStored = localStorage.getItem("quiz_guest_mode");
@@ -327,12 +376,10 @@
         .catch((error) => alert("Error: " + error.message));
     }
 
-    // --- ENHANCED GUEST MODE PERSISTENCE ---
     function continueAsGuest() {
         isGuest = true;
         localStorage.setItem("quiz_guest_mode", "true");
         
-        // Load Guest Data from LocalStorage if exists
         const guestData = localStorage.getItem("quiz_guest_data");
         if(guestData) {
             const data = JSON.parse(guestData);
@@ -370,10 +417,8 @@
         };
 
         if(isGuest) {
-            // Save to LocalStorage for Guest
             localStorage.setItem("quiz_guest_data", JSON.stringify(dataToSave));
         } else {
-            // Save to Firebase for Logged in User
             const user = auth.currentUser;
             if (!user) return;
             database.ref('users/' + user.uid).set(dataToSave);
@@ -624,7 +669,7 @@
       clearSession(); isWeakMode = false; selectedQuestions = [...qs].sort(() => Math.random() - 0.5); initQuizUI();
     }
 
-    function updateCollectionBtn() { document.getElementById("collectionMainBtn").style.display = Object.keys(collections).length > 0 ? "block" : "none"; }
+    function updateCollectionBtn() { document.getElementById("collectionMainBtn").style.display = Object.keys(collections).length > 0 ? "flex" : "none"; }
     function nextQuestionTrigger() { window.speechSynthesis.cancel(); currentIdx++; if(currentIdx < selectedQuestions.length) { saveCurrentSession(); showQuestion(); } else { showFinalResult(); } }
     function showFinalResult() {
       clearSession(); clearInterval(timerInterval); window.speechSynthesis.cancel();
@@ -642,8 +687,8 @@
     function goToHome() { clearInterval(timerInterval); window.speechSynthesis.cancel(); document.getElementById("quizArea").style.display = "none"; document.getElementById("setupArea").style.display = "block"; document.getElementById("pCont").style.display = "none"; document.getElementById("quitBtn").style.display = "none"; updateWeakBtn(); checkResumeStatus(); }
     function startTimer(m) { let t = m * 60; document.getElementById("timerDisplay").style.display = "block"; timerInterval = setInterval(() => { let mins = Math.floor(t/60), secs = t%60; document.getElementById("timerDisplay").innerText = `⏳ ${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`; if (--t < 0) { clearInterval(timerInterval); showFinalResult(); } }, 1000); }
     function handleBookmarkClick() { const q = selectedQuestions[currentIdx], idx = savedList.findIndex(i => i.question === q.question); idx > -1 ? savedList.splice(idx, 1) : savedList.push(q); syncToFirebase(); checkSavedBtn(); document.getElementById("bookmarkActionBtn").classList.toggle("active"); }
-    function checkSavedBtn() { document.getElementById("savedPracticeBtn").style.display = savedList.length > 0 ? "block" : "none"; }
-    function updateWeakBtn() { document.getElementById("weakAreasBtn").style.display = (weakList.length > 0) ? "block" : "none"; if(document.getElementById("weakCount")) document.getElementById("weakCount").innerText = weakList.length; }
+    function checkSavedBtn() { document.getElementById("savedPracticeBtn").style.display = savedList.length > 0 ? "flex" : "none"; }
+    function updateWeakBtn() { document.getElementById("weakAreasBtn").style.display = (weakList.length > 0) ? "flex" : "none"; if(document.getElementById("weakCount")) document.getElementById("weakCount").innerText = weakList.length; }
     function startSavedPractice() { clearSession(); isWeakMode = false; selectedQuestions = [...savedList].sort(() => Math.random() - 0.5); initQuizUI(); }
     function startWeakAreasQuiz() { clearSession(); isWeakMode = true; selectedQuestions = [...weakList].sort(() => Math.random() - 0.5); initQuizUI(); }
     function retryWrong() { selectedQuestions = [...wrongQuestions]; initQuizUI(); }
