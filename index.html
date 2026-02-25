@@ -233,14 +233,14 @@
     let savedList = [], revisionDates = {}, weakList = [], collections = {};
     let isGuest = false;
 
-    // --- UPDATED AUTH CHANGED FOR PROFILE AND GUEST PERSISTENCE ---
+    // --- UPDATED AUTH FOR PERSISTENT GUEST DATA ---
     auth.onAuthStateChanged((user) => {
         const up = document.getElementById("userProfile");
         const guestStored = localStorage.getItem("quiz_guest_mode");
 
         if (user) {
             isGuest = false;
-            localStorage.removeItem("quiz_guest_mode"); // Clear guest memory if logged in
+            localStorage.removeItem("quiz_guest_mode"); 
             document.getElementById("loginArea").style.display = "none";
             document.getElementById("mainContainer").style.display = "block";
             document.getElementById("mainHeader").style.display = "flex";
@@ -258,7 +258,6 @@
             up.style.display = "flex";
             syncFromFirebase(user.uid);
         } else if(guestStored === "true") {
-            // Persist Guest Mode on Reload
             continueAsGuest();
         } else {
             document.getElementById("loginArea").style.display = "flex";
@@ -328,10 +327,21 @@
         .catch((error) => alert("Error: " + error.message));
     }
 
-    // --- ENHANCED GUEST MODE WITH LOCALSTORAGE ---
+    // --- ENHANCED GUEST MODE PERSISTENCE ---
     function continueAsGuest() {
         isGuest = true;
-        localStorage.setItem("quiz_guest_mode", "true"); // Store guest status
+        localStorage.setItem("quiz_guest_mode", "true");
+        
+        // Load Guest Data from LocalStorage if exists
+        const guestData = localStorage.getItem("quiz_guest_data");
+        if(guestData) {
+            const data = JSON.parse(guestData);
+            savedList = data.bookmarks || [];
+            revisionDates = data.revision || {};
+            weakList = data.weak || [];
+            collections = data.collections || {};
+        }
+
         document.getElementById("loginArea").style.display = "none";
         document.getElementById("mainContainer").style.display = "block";
         document.getElementById("mainHeader").style.display = "flex";
@@ -352,15 +362,22 @@
     }
 
     function syncToFirebase() {
-        if(isGuest) return;
-        const user = auth.currentUser;
-        if (!user) return;
-        database.ref('users/' + user.uid).set({
+        const dataToSave = {
             bookmarks: savedList,
             revision: revisionDates,
             weak: weakList,
             collections: collections
-        });
+        };
+
+        if(isGuest) {
+            // Save to LocalStorage for Guest
+            localStorage.setItem("quiz_guest_data", JSON.stringify(dataToSave));
+        } else {
+            // Save to Firebase for Logged in User
+            const user = auth.currentUser;
+            if (!user) return;
+            database.ref('users/' + user.uid).set(dataToSave);
+        }
     }
 
     function syncFromFirebase(uid) {
