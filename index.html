@@ -119,6 +119,9 @@
             <input type="password" id="passwordInput" class="login-input" placeholder="Apna Password">
           </div>
           <button class="email-login-btn" onclick="loginWithEmail()">Login / Sign Up</button>
+          <p style="margin-top:10px; font-size:12px;">
+            <a href="javascript:void(0)" onclick="forgotPassword()" style="color:#3498db; text-decoration:none;">Forgot Password?</a>
+          </p>
         </div>
 
         <div style="margin: 15px 0; color: #888; font-size: 12px;">OR</div>
@@ -209,33 +212,56 @@
     let savedList = [], revisionDates = {}, weakList = [], collections = {};
     let isGuest = false;
 
+    // --- RELOAD PROBLEM KA FIX YAHAN HAI ---
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            isGuest = false;
+            document.getElementById("loginArea").style.display = "none";
+            document.getElementById("mainContainer").style.display = "block";
+            document.getElementById("mainHeader").style.display = "flex";
+            const up = document.getElementById("userProfile");
+            const photo = user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+            const name = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
+            up.innerHTML = `<img src="${photo}" alt="User"> <span style="font-size:12px; font-weight:bold;">${name}</span>`;
+            up.style.display = "flex";
+            syncFromFirebase(user.uid);
+        } else if(!isGuest) {
+            document.getElementById("loginArea").style.display = "flex";
+            document.getElementById("mainContainer").style.display = "none";
+            document.getElementById("mainHeader").style.display = "none";
+        }
+    });
+
     function loginWithGoogle() {
         const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).then(() => checkUser()).catch((e) => alert("Login Failed: " + e.message));
+        auth.signInWithPopup(provider).catch((e) => alert("Login Failed: " + e.message));
     }
 
-    // --- UPDATED EMAIL LOGIN WITH AUTO SIGN-UP LOGIC ---
     function loginWithEmail() {
         const email = document.getElementById("emailInput").value;
         const password = document.getElementById("passwordInput").value;
         if(!email || !password) return alert("Email aur Password dono bhariye");
         
-        // Pehle login try karein
         auth.signInWithEmailAndPassword(email, password)
-        .then(() => checkUser())
         .catch((error) => {
-            // Agar user nahi mila (Matlab sign-up karna hai) ya Invalid credentials (naya password set karna hai)
             if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.message.includes('INVALID_LOGIN_CREDENTIALS')) {
                 auth.createUserWithEmailAndPassword(email, password)
-                .then(() => {
-                    alert("Account Successfully Created! Yehi aapka password set ho gaya hai.");
-                    checkUser();
-                })
-                .catch((signUpErr) => alert("Sign Up Error: " + signUpErr.message));
+                .then(() => alert("Account Created! Yehi aapka password set ho gaya hai."))
+                .catch((signUpErr) => alert("Error: " + signUpErr.message));
             } else {
                 alert("Login Error: " + error.message);
             }
         });
+    }
+
+    // --- PASSWORD RESET FUNCTION ---
+    function forgotPassword() {
+        const email = document.getElementById("emailInput").value;
+        if(!email) return alert("Pehle apni Gmail ID likhein, fir Forgot Password par click karein.");
+        
+        auth.sendPasswordResetEmail(email)
+        .then(() => alert("Password reset link aapki Gmail par bhej diya gaya hai."))
+        .catch((error) => alert("Error: " + error.message));
     }
 
     function continueAsGuest() {
@@ -247,27 +273,6 @@
         up.innerHTML = `👤 <span style="font-size:12px; font-weight:bold;">Guest</span>`;
         up.style.display = "flex";
         initApp();
-    }
-
-    function checkUser() {
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                isGuest = false;
-                document.getElementById("loginArea").style.display = "none";
-                document.getElementById("mainContainer").style.display = "block";
-                document.getElementById("mainHeader").style.display = "flex";
-                const up = document.getElementById("userProfile");
-                const photo = user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-                const name = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
-                up.innerHTML = `<img src="${photo}" alt="User"> <span style="font-size:12px; font-weight:bold;">${name}</span>`;
-                up.style.display = "flex";
-                syncFromFirebase(user.uid);
-            } else if(!isGuest) {
-                document.getElementById("loginArea").style.display = "flex";
-                document.getElementById("mainContainer").style.display = "none";
-                document.getElementById("mainHeader").style.display = "none";
-            }
-        });
     }
 
     function syncToFirebase() {
