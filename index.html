@@ -233,11 +233,14 @@
     let savedList = [], revisionDates = {}, weakList = [], collections = {};
     let isGuest = false;
 
-    // --- UPDATED AUTH CHANGED FOR PROFILE MENU ---
+    // --- UPDATED AUTH CHANGED FOR PROFILE AND GUEST PERSISTENCE ---
     auth.onAuthStateChanged((user) => {
         const up = document.getElementById("userProfile");
+        const guestStored = localStorage.getItem("quiz_guest_mode");
+
         if (user) {
             isGuest = false;
+            localStorage.removeItem("quiz_guest_mode"); // Clear guest memory if logged in
             document.getElementById("loginArea").style.display = "none";
             document.getElementById("mainContainer").style.display = "block";
             document.getElementById("mainHeader").style.display = "flex";
@@ -254,21 +257,22 @@
                 </div>`;
             up.style.display = "flex";
             syncFromFirebase(user.uid);
-        } else if(!isGuest) {
+        } else if(guestStored === "true") {
+            // Persist Guest Mode on Reload
+            continueAsGuest();
+        } else {
             document.getElementById("loginArea").style.display = "flex";
             document.getElementById("mainContainer").style.display = "none";
             document.getElementById("mainHeader").style.display = "none";
         }
     });
 
-    // --- NEW PROFILE MENU FUNCTIONS ---
     function toggleProfileMenu(e) {
         e.stopPropagation();
         const menu = document.getElementById("profileDropdown");
         if(menu) menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
     }
 
-    // Close menu when clicking outside
     window.onclick = function(event) {
         const menu = document.getElementById("profileDropdown");
         if (menu && !event.target.closest('#userProfile')) {
@@ -278,6 +282,7 @@
 
     function logoutUser() {
         if(confirm("Logout karein?")) {
+            localStorage.removeItem("quiz_guest_mode");
             auth.signOut().then(() => location.reload());
         }
     }
@@ -323,8 +328,10 @@
         .catch((error) => alert("Error: " + error.message));
     }
 
+    // --- ENHANCED GUEST MODE WITH LOCALSTORAGE ---
     function continueAsGuest() {
         isGuest = true;
+        localStorage.setItem("quiz_guest_mode", "true"); // Store guest status
         document.getElementById("loginArea").style.display = "none";
         document.getElementById("mainContainer").style.display = "block";
         document.getElementById("mainHeader").style.display = "flex";
@@ -333,10 +340,15 @@
             <div style="font-size:24px;">👤</div>
             <div id="profileDropdown" class="profile-dropdown">
                 <div class="user-info-header">Guest Mode</div>
-                <button onclick="location.reload()">✨ Sign Up / Login</button>
+                <button onclick="clearGuestAndLogin()">✨ Sign Up / Login</button>
             </div>`;
         up.style.display = "flex";
         initApp();
+    }
+
+    function clearGuestAndLogin() {
+        localStorage.removeItem("quiz_guest_mode");
+        location.reload();
     }
 
     function syncToFirebase() {
