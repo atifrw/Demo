@@ -61,20 +61,40 @@
 
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* --- REST OF THE APP STYLES --- */
-    .user-profile { display: none; align-items: center; gap: 10px; margin-bottom: 15px; background: var(--card-bg); padding: 10px; border-radius: 50px; border: 1px solid var(--border-color); width: fit-content; }
-    .user-profile img { width: 30px; height: 30px; border-radius: 50%; }
+    /* --- PROFILE MENU STYLES --- */
+    .user-profile { position: relative; display: none; align-items: center; cursor: pointer; }
+    .user-profile img { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--primary-color); }
+    
+    .profile-dropdown {
+      position: absolute; top: 45px; right: 0; background: var(--card-bg);
+      border: 1px solid var(--border-color); border-radius: 12px; min-width: 160px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; flex-direction: column;
+      z-index: 10000; overflow: hidden;
+    }
+    .profile-dropdown button {
+      padding: 12px 15px; border: none; background: transparent; color: var(--text-color);
+      text-align: left; cursor: pointer; font-size: 14px; transition: 0.2s;
+    }
+    .profile-dropdown button:hover { background: var(--btn-bg); }
+    .profile-dropdown .user-info-header {
+      padding: 12px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 13px; color: var(--primary-color);
+    }
+
     .container { max-width: 700px; margin: auto; background: var(--card-bg); padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: relative; border: 1px solid var(--border-color); }
     .progress-container { width: 100%; background: #e0dcd0; height: 8px; border-radius: 5px; margin-bottom: 15px; display: none; }
     #progressBar { height: 100%; width: 0%; background: var(--progress-color); border-radius: 5px; transition: 0.4s; }
-    .header-btns { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; flex-wrap: wrap; display: none; }
+    
+    .header-btns { display: none; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; flex-wrap: nowrap; }
     .header-left { display: flex; align-items: center; gap: 8px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+
     #themeBtn, #quitBtn, #bookmarkActionBtn, #heartActionBtn { padding: 8px 12px; font-size: 13px; background: var(--primary-color); color: white; border: none; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
     #quitBtn { background: #e74c3c; display: none; }
     #bookmarkActionBtn, #heartActionBtn { background: transparent; font-size: 20px; padding: 0; display: none; }
     #bookmarkActionBtn svg, #heartActionBtn svg { width: 28px; height: 28px; fill: none; stroke: var(--text-color); stroke-width: 2; }
     #bookmarkActionBtn.active svg { fill: var(--text-color); }
     #heartActionBtn.active svg { fill: #e74c3c; stroke: #e74c3c; }
+    
     .voice-switch { position: relative; display: inline-block; width: 34px; height: 18px; }
     .voice-switch input { opacity: 0; width: 0; height: 0; }
     .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
@@ -123,14 +143,11 @@
             <a href="javascript:void(0)" onclick="forgotPassword()" style="color:#3498db; text-decoration:none;">Forgot Password?</a>
           </p>
         </div>
-
         <div style="margin: 15px 0; color: #888; font-size: 12px;">OR</div>
-
         <button class="modern-google-btn" onclick="loginWithGoogle()">
             <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></svg>
             Continue with Google
         </button>
-
         <button class="guest-btn" onclick="continueAsGuest()">Bina login ke chalayein (Guest)</button>
     </div>
   </div>
@@ -138,7 +155,6 @@
   <div class="header-btns" id="mainHeader">
     <div class="header-left">
       <button id="themeBtn" onclick="toggleTheme()">🌙</button>
-      <div id="userProfile" class="user-profile"></div>
       <div style="display:flex; align-items:center; gap:5px;">
         <span style="font-size:12px;">🔊</span>
         <label class="voice-switch">
@@ -148,12 +164,17 @@
         <input type="range" id="voiceSpeed" min="0.5" max="1.5" step="0.1" value="1" style="width:50px;" onchange="saveVoiceSpeed(this.value)">
       </div>
     </div>
+    
     <div id="timerDisplay">⏳ 00:00</div>
-    <div style="display: flex; gap: 10px;">
+    
+    <div class="header-right">
       <button id="heartActionBtn" title="Subject-wise Collection" onclick="handleHeartClick()"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg></button>
       <button id="bookmarkActionBtn" onclick="handleBookmarkClick()"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></button>
+      
+      <div id="userProfile" class="user-profile" onclick="toggleProfileMenu(event)">
+          </div>
+      <button id="quitBtn" onclick="quitQuiz()">⏹️ Quit</button>
     </div>
-    <button id="quitBtn" onclick="quitQuiz()">⏹️ Quit</button>
   </div>
 
   <div class="container" id="mainContainer" style="display:none;">
@@ -212,17 +233,25 @@
     let savedList = [], revisionDates = {}, weakList = [], collections = {};
     let isGuest = false;
 
-    // --- RELOAD PROBLEM KA FIX YAHAN HAI ---
+    // --- UPDATED AUTH CHANGED FOR PROFILE MENU ---
     auth.onAuthStateChanged((user) => {
+        const up = document.getElementById("userProfile");
         if (user) {
             isGuest = false;
             document.getElementById("loginArea").style.display = "none";
             document.getElementById("mainContainer").style.display = "block";
             document.getElementById("mainHeader").style.display = "flex";
-            const up = document.getElementById("userProfile");
+            
             const photo = user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-            const name = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
-            up.innerHTML = `<img src="${photo}" alt="User"> <span style="font-size:12px; font-weight:bold;">${name}</span>`;
+            const name = user.displayName || user.email.split('@')[0];
+            
+            up.innerHTML = `
+                <img src="${photo}" alt="User">
+                <div id="profileDropdown" class="profile-dropdown">
+                    <div class="user-info-header">Hi, ${name.split(' ')[0]}</div>
+                    <button onclick="changeDisplayName()">✏️ Name Change</button>
+                    <button onclick="logoutUser()" style="color:#e74c3c; border-top:1px solid #eee;">🚪 Logout</button>
+                </div>`;
             up.style.display = "flex";
             syncFromFirebase(user.uid);
         } else if(!isGuest) {
@@ -231,6 +260,38 @@
             document.getElementById("mainHeader").style.display = "none";
         }
     });
+
+    // --- NEW PROFILE MENU FUNCTIONS ---
+    function toggleProfileMenu(e) {
+        e.stopPropagation();
+        const menu = document.getElementById("profileDropdown");
+        if(menu) menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+    }
+
+    // Close menu when clicking outside
+    window.onclick = function(event) {
+        const menu = document.getElementById("profileDropdown");
+        if (menu && !event.target.closest('#userProfile')) {
+            menu.style.display = "none";
+        }
+    }
+
+    function logoutUser() {
+        if(confirm("Logout karein?")) {
+            auth.signOut().then(() => location.reload());
+        }
+    }
+
+    function changeDisplayName() {
+        const newName = prompt("Naya Display Name likhein:");
+        if (newName && auth.currentUser) {
+            auth.currentUser.updateProfile({ displayName: newName })
+            .then(() => {
+                alert("Naam update ho gaya! Refresh kar rahe hain...");
+                location.reload();
+            }).catch(e => alert(e.message));
+        }
+    }
 
     function loginWithGoogle() {
         const provider = new firebase.auth.GoogleAuthProvider();
@@ -254,11 +315,9 @@
         });
     }
 
-    // --- PASSWORD RESET FUNCTION ---
     function forgotPassword() {
         const email = document.getElementById("emailInput").value;
         if(!email) return alert("Pehle apni Gmail ID likhein, fir Forgot Password par click karein.");
-        
         auth.sendPasswordResetEmail(email)
         .then(() => alert("Password reset link aapki Gmail par bhej diya gaya hai."))
         .catch((error) => alert("Error: " + error.message));
@@ -270,7 +329,12 @@
         document.getElementById("mainContainer").style.display = "block";
         document.getElementById("mainHeader").style.display = "flex";
         const up = document.getElementById("userProfile");
-        up.innerHTML = `👤 <span style="font-size:12px; font-weight:bold;">Guest</span>`;
+        up.innerHTML = `
+            <div style="font-size:24px;">👤</div>
+            <div id="profileDropdown" class="profile-dropdown">
+                <div class="user-info-header">Guest Mode</div>
+                <button onclick="location.reload()">✨ Sign Up / Login</button>
+            </div>`;
         up.style.display = "flex";
         initApp();
     }
