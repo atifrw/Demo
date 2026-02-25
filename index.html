@@ -23,7 +23,7 @@
     }
     body { font-family: 'Rubik', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 15px; transition: 0.3s; }
     
-    /* --- MODERN LOGIN INTERFACE UPDATED --- */
+    /* --- MODERN LOGIN INTERFACE --- */
     #loginArea { 
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: linear-gradient(135deg, #f5f2eb 0%, #e0dcd0 100%);
@@ -214,24 +214,30 @@
         auth.signInWithPopup(provider).then(() => checkUser()).catch((e) => alert("Login Failed: " + e.message));
     }
 
-    // New Email/Password Login
+    // --- UPDATED EMAIL LOGIN WITH AUTO SIGN-UP LOGIC ---
     function loginWithEmail() {
         const email = document.getElementById("emailInput").value;
         const password = document.getElementById("passwordInput").value;
         if(!email || !password) return alert("Email aur Password dono bhariye");
         
+        // Pehle login try karein
         auth.signInWithEmailAndPassword(email, password)
         .then(() => checkUser())
         .catch((error) => {
-            if (error.code === 'auth/user-not-found') {
-                auth.createUserWithEmailAndPassword(email, password).then(() => checkUser());
+            // Agar user nahi mila (Matlab sign-up karna hai) ya Invalid credentials (naya password set karna hai)
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.message.includes('INVALID_LOGIN_CREDENTIALS')) {
+                auth.createUserWithEmailAndPassword(email, password)
+                .then(() => {
+                    alert("Account Successfully Created! Yehi aapka password set ho gaya hai.");
+                    checkUser();
+                })
+                .catch((signUpErr) => alert("Sign Up Error: " + signUpErr.message));
             } else {
-                alert(error.message);
+                alert("Login Error: " + error.message);
             }
         });
     }
 
-    // New Guest Mode
     function continueAsGuest() {
         isGuest = true;
         document.getElementById("loginArea").style.display = "none";
@@ -286,8 +292,6 @@
             initApp();
         });
     }
-
-    checkUser();
 
     function initApp() { 
       checkSavedBtn(); updateWeakBtn(); checkResumeStatus(); updateCollectionBtn();
