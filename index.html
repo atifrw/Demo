@@ -23,7 +23,7 @@
     }
     body { font-family: 'Rubik', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 15px; transition: 0.3s; }
     
-    /* --- MODERN LOGIN INTERFACE --- */
+    /* --- MODERN LOGIN INTERFACE UPDATED --- */
     #loginArea { 
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: linear-gradient(135deg, #f5f2eb 0%, #e0dcd0 100%);
@@ -33,24 +33,31 @@
 
     .login-glass-card {
       background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px);
-      border: 1px solid rgba(255, 255, 255, 0.4); padding: 50px 30px;
+      border: 1px solid rgba(255, 255, 255, 0.4); padding: 30px;
       border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.1);
       max-width: 400px; width: 90%; animation: fadeIn 0.8s ease-out;
     }
     [data-theme="dark"] .login-glass-card { background: rgba(45, 45, 45, 0.7); border-color: rgba(255, 255, 255, 0.1); }
 
-    .login-brand-icon { font-size: 60px; margin-bottom: 20px; display: block; }
-    .login-glass-card h1 { margin: 0; font-size: 30px; color: var(--text-color); font-weight: 600; }
-    .login-glass-card p { color: #7f8c8d; font-size: 15px; margin: 15px 0 30px 0; line-height: 1.5; }
+    .login-brand-icon { font-size: 50px; margin-bottom: 10px; display: block; }
+    .login-glass-card h1 { margin: 0; font-size: 26px; color: var(--text-color); font-weight: 600; }
+    
+    .input-group { margin-bottom: 15px; text-align: left; }
+    .input-group label { display: block; font-size: 12px; margin-bottom: 5px; font-weight: bold; }
+    .login-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; background: white; font-family: inherit; box-sizing: border-box; }
 
     .modern-google-btn {
-      background: white; color: #2c3e50; border: 1px solid #ddd; padding: 14px 24px;
-      border-radius: 12px; font-size: 16px; font-weight: 500; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      background: white; color: #2c3e50; border: 1px solid #ddd; padding: 12px 24px;
+      border-radius: 12px; font-size: 14px; font-weight: 500; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+      transition: all 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-top: 15px;
     }
-    .modern-google-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-color: #4285F4; }
-    .modern-google-btn svg { width: 22px; height: 22px; }
+    .modern-google-btn svg { width: 18px; height: 18px; }
+
+    .email-login-btn { background: #3498db; color: white; border: none; padding: 12px; border-radius: 12px; width: 100%; font-weight: 600; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+    .email-login-btn:hover { background: #2980b9; }
+
+    .guest-btn { background: transparent; color: var(--text-color); border: 1px dashed var(--primary-color); padding: 10px; border-radius: 10px; width: 100%; margin-top: 10px; cursor: pointer; font-size: 13px; opacity: 0.8; }
 
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -104,12 +111,24 @@
     <div class="login-glass-card">
         <span class="login-brand-icon">📖</span>
         <h1>Quiz 3 Pro</h1>
-        <p>Sync your progress, bookmarks, and collections across all your devices.</p>
+        <div style="margin-top:20px;">
+          <div class="input-group">
+            <input type="email" id="emailInput" class="login-input" placeholder="Gmail ID">
+          </div>
+          <div class="input-group">
+            <input type="password" id="passwordInput" class="login-input" placeholder="Apna Password">
+          </div>
+          <button class="email-login-btn" onclick="loginWithEmail()">Login / Sign Up</button>
+        </div>
+
+        <div style="margin: 15px 0; color: #888; font-size: 12px;">OR</div>
+
         <button class="modern-google-btn" onclick="loginWithGoogle()">
             <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></svg>
             Continue with Google
         </button>
-        <div style="margin-top: 30px; font-size: 11px; color: #bdc3c7; letter-spacing: 1px;">SECURE FIREBASE AUTH</div>
+
+        <button class="guest-btn" onclick="continueAsGuest()">Bina login ke chalayein (Guest)</button>
     </div>
   </div>
 
@@ -188,23 +207,56 @@
     let quizData = {}, selectedQuestions = [], wrongQuestions = [], currentIdx = 0, score = 0, timerInterval;
     let questionsAttempted = 0, currentSub = "", currentCh = "", isWeakMode = false;
     let savedList = [], revisionDates = {}, weakList = [], collections = {};
+    let isGuest = false;
 
     function loginWithGoogle() {
         const provider = new firebase.auth.GoogleAuthProvider();
         auth.signInWithPopup(provider).then(() => checkUser()).catch((e) => alert("Login Failed: " + e.message));
     }
 
+    // New Email/Password Login
+    function loginWithEmail() {
+        const email = document.getElementById("emailInput").value;
+        const password = document.getElementById("passwordInput").value;
+        if(!email || !password) return alert("Email aur Password dono bhariye");
+        
+        auth.signInWithEmailAndPassword(email, password)
+        .then(() => checkUser())
+        .catch((error) => {
+            if (error.code === 'auth/user-not-found') {
+                auth.createUserWithEmailAndPassword(email, password).then(() => checkUser());
+            } else {
+                alert(error.message);
+            }
+        });
+    }
+
+    // New Guest Mode
+    function continueAsGuest() {
+        isGuest = true;
+        document.getElementById("loginArea").style.display = "none";
+        document.getElementById("mainContainer").style.display = "block";
+        document.getElementById("mainHeader").style.display = "flex";
+        const up = document.getElementById("userProfile");
+        up.innerHTML = `👤 <span style="font-size:12px; font-weight:bold;">Guest</span>`;
+        up.style.display = "flex";
+        initApp();
+    }
+
     function checkUser() {
         auth.onAuthStateChanged((user) => {
             if (user) {
+                isGuest = false;
                 document.getElementById("loginArea").style.display = "none";
                 document.getElementById("mainContainer").style.display = "block";
                 document.getElementById("mainHeader").style.display = "flex";
                 const up = document.getElementById("userProfile");
-                up.innerHTML = `<img src="${user.photoURL}" alt="User"> <span style="font-size:12px; font-weight:bold;">${user.displayName.split(' ')[0]}</span>`;
+                const photo = user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                const name = user.displayName ? user.displayName.split(' ')[0] : user.email.split('@')[0];
+                up.innerHTML = `<img src="${photo}" alt="User"> <span style="font-size:12px; font-weight:bold;">${name}</span>`;
                 up.style.display = "flex";
                 syncFromFirebase(user.uid);
-            } else {
+            } else if(!isGuest) {
                 document.getElementById("loginArea").style.display = "flex";
                 document.getElementById("mainContainer").style.display = "none";
                 document.getElementById("mainHeader").style.display = "none";
@@ -213,6 +265,7 @@
     }
 
     function syncToFirebase() {
+        if(isGuest) return;
         const user = auth.currentUser;
         if (!user) return;
         database.ref('users/' + user.uid).set({
