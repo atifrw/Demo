@@ -369,26 +369,35 @@
     }
 
     function loginWithGoogle() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).catch((e) => alert("Login Failed: " + e.message));
-    }
+    const provider = new firebase.auth.GoogleAuthProvider();
+    // Persistence set karne se login browser band karne par bhi nahi hatega
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    .then(() => {
+        return auth.signInWithPopup(provider);
+    })
+    .catch((e) => alert("Login Failed: " + e.message));
+}
 
     function loginWithEmail() {
-        const email = document.getElementById("emailInput").value;
-        const password = document.getElementById("passwordInput").value;
-        if(!email || !password) return alert("Email aur Password dono bhariye");
-        
-        auth.signInWithEmailAndPassword(email, password)
+    const email = document.getElementById("emailInput").value;
+    const password = document.getElementById("passwordInput").value;
+    if(!email || !password) return alert("Email aur Password dono bhariye");
+    
+    // Yahan bhi persistence add kar di hai
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    .then(() => {
+        return auth.signInWithEmailAndPassword(email, password)
         .catch((error) => {
             if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.message.includes('INVALID_LOGIN_CREDENTIALS')) {
-                auth.createUserWithEmailAndPassword(email, password)
-                .then(() => alert("Account Created! Yehi aapka password set ho gaya hai."))
-                .catch((signUpErr) => alert("Error: " + signUpErr.message));
+                return auth.createUserWithEmailAndPassword(email, password)
+                .then(() => alert("Account Created! Yehi aapka password set ho gaya hai."));
             } else {
-                alert("Login Error: " + error.message);
+                throw error;
             }
         });
-    }
+    })
+    .catch((error) => alert("Login Error: " + error.message));
+}
 
     function forgotPassword() {
         const email = document.getElementById("emailInput").value;
