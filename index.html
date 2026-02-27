@@ -299,6 +299,7 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const database = firebase.database();
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
     let quizData = {}, selectedQuestions = [], wrongQuestions = [], currentIdx = 0, score = 0, timerInterval;
     let questionsAttempted = 0, currentSub = "", currentCh = "", isWeakMode = false;
@@ -306,36 +307,40 @@
     let isGuest = false;
 
     auth.onAuthStateChanged((user) => {
-        const up = document.getElementById("userProfile");
-        const guestStored = localStorage.getItem("quiz_guest_mode");
+    const up = document.getElementById("userProfile");
+    const guestStored = localStorage.getItem("quiz_guest_mode");
 
-        if (user) {
-            isGuest = false;
-            localStorage.removeItem("quiz_guest_mode"); 
-            document.getElementById("loginArea").style.display = "none";
-            document.getElementById("mainContainer").style.display = "block";
-            document.getElementById("mainHeader").style.display = "flex";
-            
-            const photo = user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-            const name = user.displayName || user.email.split('@')[0];
-            
-            up.innerHTML = `
-                <img src="${photo}" alt="User">
-                <div id="profileDropdown" class="profile-dropdown">
-                    <div class="user-info-header">Hi, ${name.split(' ')[0]}</div>
-                    <button onclick="changeDisplayName()">✏️ Name Change</button>
-                    <button onclick="logoutUser()" style="color:#e74c3c; border-top:1px solid #eee;">🚪 Logout</button>
-                </div>`;
-            up.style.display = "flex";
-            syncFromFirebase(user.uid);
-        } else if(guestStored === "true") {
-            continueAsGuest();
-        } else {
-            document.getElementById("loginArea").style.display = "flex";
-            document.getElementById("mainContainer").style.display = "none";
-            document.getElementById("mainHeader").style.display = "none";
-        }
-    });
+    if (user) {
+        // Logged In State: Sabse pehle guest mode hatao
+        isGuest = false;
+        localStorage.removeItem("quiz_guest_mode"); 
+        
+        document.getElementById("loginArea").style.display = "none";
+        document.getElementById("mainContainer").style.display = "block";
+        document.getElementById("mainHeader").style.display = "flex";
+        
+        const photo = user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+        const name = user.displayName || user.email.split('@')[0];
+        
+        up.innerHTML = `
+            <img src="${photo}" alt="User">
+            <div id="profileDropdown" class="profile-dropdown">
+                <div class="user-info-header">Hi, ${name.split(' ')[0]}</div>
+                <button onclick="changeDisplayName()">✏️ Name Change</button>
+                <button onclick="logoutUser()" style="color:#e74c3c; border-top:1px solid #eee;">🚪 Logout</button>
+            </div>`;
+        up.style.display = "flex";
+        syncFromFirebase(user.uid);
+    } else if(guestStored === "true") {
+        // Agar logout hai lekin pehle guest tha
+        continueAsGuest();
+    } else {
+        // Bilkul fresh user: Login page dikhao
+        document.getElementById("loginArea").style.display = "flex";
+        document.getElementById("mainContainer").style.display = "none";
+        document.getElementById("mainHeader").style.display = "none";
+    }
+});
 
     function toggleProfileMenu(e) {
         e.stopPropagation();
@@ -369,26 +374,27 @@
     }
 
     function loginWithGoogle() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).catch((e) => alert("Login Failed: " + e.message));
-    }
+    const provider = new firebase.auth.GoogleAuthProvider();
+    // Seedha sign in karein
+    auth.signInWithPopup(provider).catch((e) => alert("Login Failed: " + e.message));
+}
 
-    function loginWithEmail() {
-        const email = document.getElementById("emailInput").value;
-        const password = document.getElementById("passwordInput").value;
-        if(!email || !password) return alert("Email aur Password dono bhariye");
-        
-        auth.signInWithEmailAndPassword(email, password)
-        .catch((error) => {
-            if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.message.includes('INVALID_LOGIN_CREDENTIALS')) {
-                auth.createUserWithEmailAndPassword(email, password)
-                .then(() => alert("Account Created! Yehi aapka password set ho gaya hai."))
-                .catch((signUpErr) => alert("Error: " + signUpErr.message));
-            } else {
-                alert("Login Error: " + error.message);
-            }
-        });
-    }
+function loginWithEmail() {
+    const email = document.getElementById("emailInput").value;
+    const password = document.getElementById("passwordInput").value;
+    if(!email || !password) return alert("Email aur Password dono bhariye");
+    
+    auth.signInWithEmailAndPassword(email, password)
+    .catch((error) => {
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.message.includes('INVALID_LOGIN_CREDENTIALS')) {
+            auth.createUserWithEmailAndPassword(email, password)
+            .then(() => alert("Account Created!"))
+            .catch((signUpErr) => alert("Error: " + signUpErr.message));
+        } else {
+            alert("Login Error: " + error.message);
+        }
+    });
+}
 
     function forgotPassword() {
         const email = document.getElementById("emailInput").value;
