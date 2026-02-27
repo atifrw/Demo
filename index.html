@@ -296,22 +296,22 @@
       measurementId: "G-CLXDSVMG0"
     };
 
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    
-    // --- Persistence Lock ---
-    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-      .then(() => console.log("Persistence Fixed: Ab auto-logout nahi hoga"))
-      .catch((error) => console.error("Persistence error: ", error.message));
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 
     const auth = firebase.auth();
     const database = firebase.database();
+
+    // --- 1. SESSION PERSISTENCE (LOCK) ---
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+      .then(() => console.log("Session Fixed: Ab logout nahi hoga"))
+      .catch((e) => console.error("Persistence error:", e));
 
     let quizData = {}, selectedQuestions = [], wrongQuestions = [], currentIdx = 0, score = 0, timerInterval;
     let questionsAttempted = 0, currentSub = "", currentCh = "", isWeakMode = false;
     let savedList = [], revisionDates = {}, weakList = [], collections = {};
     let isGuest = false;
 
-    // --- Auth Observer (Sahi Wala) ---
+    // --- 2. AUTH STATE LISTENER (FIXED) ---
     auth.onAuthStateChanged((user) => {
         const up = document.getElementById("userProfile");
         const manualLogout = localStorage.getItem("manual_logout") === "true";
@@ -361,14 +361,15 @@
         }
     }
 
-        function logoutUser() {
+    // --- 3. LOGOUT FUNCTION (FIXED) ---
+    function logoutUser() {
         if(confirm("Logout karein?")) {
-            localStorage.setItem("manual_logout", "true"); // Yeh line bohot zaroori hai
+            localStorage.setItem("manual_logout", "true"); 
             localStorage.removeItem("quiz_guest_mode");
             auth.signOut().then(() => location.reload());
         }
     }
-
+    
     function changeDisplayName() {
         const newName = prompt("Naya Display Name likhein:");
         if (newName && auth.currentUser) {
