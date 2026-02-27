@@ -296,62 +296,58 @@
       measurementId: "G-CLXDSVMG0"
     };
 
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    // Initialization ke turant baad ye dalein
-firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-  .then(() => {
-    console.log("Persistence set to LOCAL. Ab logout nahi hoga.");
-  })
-  .catch((error) => {
-    console.error("Persistence error: ", error.message);
-  });
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    
+    // --- Persistence Lock ---
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+      .then(() => console.log("Persistence Fixed: Ab auto-logout nahi hoga"))
+      .catch((error) => console.error("Persistence error: ", error.message));
+
     const auth = firebase.auth();
     const database = firebase.database();
-    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
     let quizData = {}, selectedQuestions = [], wrongQuestions = [], currentIdx = 0, score = 0, timerInterval;
     let questionsAttempted = 0, currentSub = "", currentCh = "", isWeakMode = false;
     let savedList = [], revisionDates = {}, weakList = [], collections = {};
     let isGuest = false;
 
+    // --- Auth Observer (Sahi Wala) ---
     auth.onAuthStateChanged((user) => {
-    auth.onAuthStateChanged((user) => {
-    const up = document.getElementById("userProfile");
-    // Local check: Kya user ne manually logout kiya tha?
-    const manualLogout = localStorage.getItem("manual_logout") === "true";
+        const up = document.getElementById("userProfile");
+        const manualLogout = localStorage.getItem("manual_logout") === "true";
 
-    if (user) {
-        localStorage.setItem("manual_logout", "false"); // Login hai to flag clear karein
-        isGuest = false;
-        localStorage.removeItem("quiz_guest_mode"); 
-        
-        document.getElementById("loginArea").style.display = "none";
-        document.getElementById("mainContainer").style.display = "block";
-        document.getElementById("mainHeader").style.display = "flex";
-        
-        const photo = user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-        const name = user.displayName || user.email.split('@')[0];
-        
-        up.innerHTML = `
-            <img src="${photo}" alt="User">
-            <div id="profileDropdown" class="profile-dropdown">
-                <div class="user-info-header">Hi, ${name.split(' ')[0]}</div>
-                <button onclick="changeDisplayName()">✏️ Name Change</button>
-                <button onclick="logoutUser()" style="color:#e74c3c; border-top:1px solid #eee;">🚪 Logout</button>
-            </div>`;
-        up.style.display = "flex";
-        syncFromFirebase(user.uid);
-    } 
-    else if (localStorage.getItem("quiz_guest_mode") === "true") {
-        continueAsGuest();
-    }
-    else {
-        // Sirf tab login screen dikhao jab manually logout kiya ho ya guest na ho
-        document.getElementById("loginArea").style.display = "flex";
-        document.getElementById("mainContainer").style.display = "none";
-        document.getElementById("mainHeader").style.display = "none";
-    }
-});
+        if (user) {
+            localStorage.setItem("manual_logout", "false"); 
+            isGuest = false;
+            localStorage.removeItem("quiz_guest_mode"); 
+            
+            document.getElementById("loginArea").style.display = "none";
+            document.getElementById("mainContainer").style.display = "block";
+            document.getElementById("mainHeader").style.display = "flex";
+            
+            const photo = user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+            const name = user.displayName || user.email.split('@')[0];
+            
+            up.innerHTML = `
+                <img src="${photo}" alt="User">
+                <div id="profileDropdown" class="profile-dropdown">
+                    <div class="user-info-header">Hi, ${name.split(' ')[0]}</div>
+                    <button onclick="changeDisplayName()">✏️ Name Change</button>
+                    <button onclick="logoutUser()" style="color:#e74c3c; border-top:1px solid #eee;">🚪 Logout</button>
+                </div>`;
+            up.style.display = "flex";
+            syncFromFirebase(user.uid);
+        } 
+        else if (localStorage.getItem("quiz_guest_mode") === "true") {
+            continueAsGuest();
+        }
+        else {
+            document.getElementById("loginArea").style.display = "flex";
+            document.getElementById("mainContainer").style.display = "none";
+            document.getElementById("mainHeader").style.display = "none";
+        }
+    });
+
     function toggleProfileMenu(e) {
         e.stopPropagation();
         const menu = document.getElementById("profileDropdown");
@@ -365,13 +361,13 @@ firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
         }
     }
 
-    function logoutUser() {
-    if(confirm("Logout karein?")) {
-        localStorage.setItem("manual_logout", "true"); // Flag set karein
-        localStorage.removeItem("quiz_guest_mode");
-        auth.signOut().then(() => location.reload());
+        function logoutUser() {
+        if(confirm("Logout karein?")) {
+            localStorage.setItem("manual_logout", "true"); // Yeh line bohot zaroori hai
+            localStorage.removeItem("quiz_guest_mode");
+            auth.signOut().then(() => location.reload());
+        }
     }
-}
 
     function changeDisplayName() {
         const newName = prompt("Naya Display Name likhein:");
