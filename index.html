@@ -297,6 +297,14 @@
     };
 
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    // Initialization ke turant baad ye dalein
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  .then(() => {
+    console.log("Persistence set to LOCAL. Ab logout nahi hoga.");
+  })
+  .catch((error) => {
+    console.error("Persistence error: ", error.message);
+  });
     const auth = firebase.auth();
     const database = firebase.database();
     firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
@@ -307,11 +315,13 @@
     let isGuest = false;
 
     auth.onAuthStateChanged((user) => {
+    auth.onAuthStateChanged((user) => {
     const up = document.getElementById("userProfile");
-    const guestStored = localStorage.getItem("quiz_guest_mode");
+    // Local check: Kya user ne manually logout kiya tha?
+    const manualLogout = localStorage.getItem("manual_logout") === "true";
 
     if (user) {
-        // Logged In State: Sabse pehle guest mode hatao
+        localStorage.setItem("manual_logout", "false"); // Login hai to flag clear karein
         isGuest = false;
         localStorage.removeItem("quiz_guest_mode"); 
         
@@ -331,17 +341,17 @@
             </div>`;
         up.style.display = "flex";
         syncFromFirebase(user.uid);
-    } else if(guestStored === "true") {
-        // Agar logout hai lekin pehle guest tha
+    } 
+    else if (localStorage.getItem("quiz_guest_mode") === "true") {
         continueAsGuest();
-    } else {
-        // Bilkul fresh user: Login page dikhao
+    }
+    else {
+        // Sirf tab login screen dikhao jab manually logout kiya ho ya guest na ho
         document.getElementById("loginArea").style.display = "flex";
         document.getElementById("mainContainer").style.display = "none";
         document.getElementById("mainHeader").style.display = "none";
     }
 });
-
     function toggleProfileMenu(e) {
         e.stopPropagation();
         const menu = document.getElementById("profileDropdown");
@@ -356,11 +366,12 @@
     }
 
     function logoutUser() {
-        if(confirm("Logout karein?")) {
-            localStorage.removeItem("quiz_guest_mode");
-            auth.signOut().then(() => location.reload());
-        }
+    if(confirm("Logout karein?")) {
+        localStorage.setItem("manual_logout", "true"); // Flag set karein
+        localStorage.removeItem("quiz_guest_mode");
+        auth.signOut().then(() => location.reload());
     }
+}
 
     function changeDisplayName() {
         const newName = prompt("Naya Display Name likhein:");
