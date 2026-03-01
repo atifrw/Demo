@@ -162,12 +162,28 @@
     .status-red { background: #e74c3c; }
 
     @media (max-width: 500px) {
-      .button-grid { grid-template-columns: 1fr; }
+      .button-grid { grid-template-columns: 1fr;
+                   #loadingArea {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: var(--bg-color); display: flex; align-items: center;
+  justify-content: center; z-index: 10001; font-weight: bold;
+}
+.spinner {
+  width: 40px; height: 40px; border: 4px solid #f3f3f3;
+  border-top: 4px solid var(--primary-color); border-radius: 50%;
+  animation: spin 1s linear infinite; margin-bottom: 10px;
+}
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
-
+<div id="loadingArea">
+  <div style="text-align:center;">
+    <div class="spinner"></div>
+    <p>Checking Session...</p>
+  </div>
+</div>
   <div id="loginArea">
     <div class="login-glass-card">
         <span class="login-brand-icon">📖</span>
@@ -313,40 +329,50 @@
 
     // --- 2. AUTH STATE LISTENER (FIXED) ---
     auth.onAuthStateChanged((user) => {
-        const up = document.getElementById("userProfile");
-        const manualLogout = localStorage.getItem("manual_logout") === "true";
+    const up = document.getElementById("userProfile");
+    const loadingArea = document.getElementById("loadingArea");
+    const loginArea = document.getElementById("loginArea");
+    const mainContainer = document.getElementById("mainContainer");
+    const mainHeader = document.getElementById("mainHeader");
 
-        if (user) {
-            localStorage.setItem("manual_logout", "false"); 
-            isGuest = false;
-            localStorage.removeItem("quiz_guest_mode"); 
-            
-            document.getElementById("loginArea").style.display = "none";
-            document.getElementById("mainContainer").style.display = "block";
-            document.getElementById("mainHeader").style.display = "flex";
-            
-            const photo = user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-            const name = user.displayName || user.email.split('@')[0];
-            
-            up.innerHTML = `
-                <img src="${photo}" alt="User">
-                <div id="profileDropdown" class="profile-dropdown">
-                    <div class="user-info-header">Hi, ${name.split(' ')[0]}</div>
-                    <button onclick="changeDisplayName()">✏️ Name Change</button>
-                    <button onclick="logoutUser()" style="color:#e74c3c; border-top:1px solid #eee;">🚪 Logout</button>
-                </div>`;
-            up.style.display = "flex";
-            syncFromFirebase(user.uid);
-        } 
-        else if (localStorage.getItem("quiz_guest_mode") === "true") {
-            continueAsGuest();
-        }
-        else {
-            document.getElementById("loginArea").style.display = "flex";
-            document.getElementById("mainContainer").style.display = "none";
-            document.getElementById("mainHeader").style.display = "none";
-        }
-    });
+    // Loading screen ko 1 second baad hatane ke liye (taki data load ho jaye)
+    const hideLoading = () => {
+        setTimeout(() => { loadingArea.style.display = "none"; }, 800);
+    };
+
+    if (user) {
+        localStorage.setItem("manual_logout", "false"); 
+        isGuest = false;
+        
+        loginArea.style.display = "none";
+        mainContainer.style.display = "block";
+        mainHeader.style.display = "flex";
+        
+        const photo = user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+        const name = user.displayName || user.email.split('@')[0];
+        
+        up.innerHTML = `
+            <img src="${photo}" alt="User">
+            <div id="profileDropdown" class="profile-dropdown">
+                <div class="user-info-header">Hi, ${name.split(' ')[0]}</div>
+                <button onclick="changeDisplayName()">✏️ Name Change</button>
+                <button onclick="logoutUser()" style="color:#e74c3c; border-top:1px solid #eee;">🚪 Logout</button>
+            </div>`;
+        up.style.display = "flex";
+        syncFromFirebase(user.uid);
+        hideLoading();
+    } 
+    else if (localStorage.getItem("quiz_guest_mode") === "true") {
+        continueAsGuest();
+        hideLoading();
+    }
+    else {
+        loginArea.style.display = "flex";
+        mainContainer.style.display = "none";
+        mainHeader.style.display = "none";
+        hideLoading();
+    }
+});
 
     function toggleProfileMenu(e) {
         e.stopPropagation();
