@@ -299,6 +299,13 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const database = firebase.database();
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+  .then(function () {
+    console.log("Login permanent ho gaya");
+  })
+  .catch(function (error) {
+    console.log(error);
+  });
 
     let quizData = {}, selectedQuestions = [], wrongQuestions = [], currentIdx = 0, score = 0, timerInterval;
     let questionsAttempted = 0, currentSub = "", currentCh = "", isWeakMode = false;
