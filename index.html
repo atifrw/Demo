@@ -541,7 +541,7 @@
       b.hasAttribute("data-theme") ? b.removeAttribute("data-theme") : b.setAttribute("data-theme", "dark");
     }
 
-    // मॉडिफाइड फंक्शन: अब यह ड्रॉपडाउन की जगह चेकबॉक्स की लिस्ट जनरेट करता है
+        // मॉडिफाइड फंक्शन: अब चेकबॉक्स एकदम प्रोफेशनल और पास-पास दिखेंगे
     function updateChapters() {
       const s = document.getElementById("subjectSelect").value;
       const container = document.getElementById("chapterCheckboxContainer");
@@ -555,32 +555,26 @@
       
       container.style.display = "block";
       
-      // 'Select All' मास्टर चेकबॉक्स
+      // 'Select All' मास्टर चेकबॉक्स (खूबसूरत लुक के साथ)
       container.innerHTML += `
-        <div style="margin-bottom: 8px; font-weight: 600;">
-          <input type="checkbox" id="selectAllChapters" onchange="toggleAllChapters(this)"> 
-          <label for="selectAllChapters" style="cursor:pointer; color: var(--primary-color);">-- सभी अध्याय (Select All) --</label>
+        <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px; font-weight: 600;">
+          <input type="checkbox" id="selectAllChapters" onchange="toggleAllChapters(this)" style="width: 18px; height: 18px; cursor: pointer;"> 
+          <label for="selectAllChapters" style="cursor:pointer; color: var(--primary-color); font-size: 15px;">-- सभी अध्याय (Select All) --</label>
         </div>
-        <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 6px 0;">
+        <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 8px 0;">
       `;
       
-      // चुनी हुई सब्जेक्ट के सभी चैप्टर्स को चेकबॉक्स के रूप में जोड़ना
+      // चुनी हुई सब्जेक्ट के सभी चैप्टर्स को एक साफ़ सुथरी रो (Row) में सेट करना
       Object.keys(quizData[s]).forEach((chapter, idx) => {
         container.innerHTML += `
-          <div style="margin: 6px 0; display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" class="chapter-checkbox" value="${chapter}" id="ch_${idx}">
-            <label for="ch_${idx}" style="cursor:pointer; font-size: 15px;">${chapter}</label>
+          <div style="margin: 8px 0; display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%;">
+            <input type="checkbox" class="chapter-checkbox" value="${chapter}" id="ch_${idx}" style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0;">
+            <label for="ch_${idx}" style="cursor:pointer; font-size: 15px; width: auto; text-align: left; display: inline-block;">${chapter}</label>
           </div>
         `;
       });
     }
-
-    // सभी चेकबॉक्स को एक साथ टिक/अनटिक करने का हेल्पर फंक्शन
-    function toggleAllChapters(master) {
-      const checkboxes = document.querySelectorAll(".chapter-checkbox");
-      checkboxes.forEach(cb => cb.checked = master.checked);
-    }
-
+    
     function toggleTracker() {
       const area = document.getElementById("trackerArea");
       area.style.display = (area.style.display === "block") ? "none" : "block";
