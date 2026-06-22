@@ -111,29 +111,6 @@
     h2 { text-align: center; margin-top: 0; color: var(--primary-color); }
     select, input, .main-btn { padding: 12px; font-size: 16px; margin-bottom: 12px; width: 100%; border-radius: 10px; border: 1px solid var(--border-color); background-color: var(--btn-bg); color: var(--text-color); box-sizing: border-box; }
     
-    /* --- NEW CHAPTER CHECKBOX STYLES --- */
-    .checkbox-container {
-      max-height: 200px;
-      overflow-y: auto;
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 10px;
-      margin-bottom: 12px;
-      background-color: var(--btn-bg);
-      text-align: left;
-    }
-    .checkbox-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 5px;
-      cursor: pointer;
-      font-size: 15px;
-      border-bottom: 1px dashed var(--border-color);
-    }
-    .checkbox-item:last-child { border-bottom: none; }
-    .checkbox-item input { width: auto; margin-bottom: 0; cursor: pointer; }
-
     /* --- NEW GRID BUTTON STYLES --- */
     .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
     
@@ -248,11 +225,9 @@
         <button id="resumeBtn" class="main-btn" style="background: #9b59b6; color: white; display: none;" onclick="resumeQuiz()">🕒 पिछला क्विज़ जारी रखें</button>
         <select id="subjectSelect" onchange="updateChapters()"><option value="all">-- सभी विषय --</option></select>
         
-        <div id="chapterCheckboxArea" class="checkbox-container" style="display:none;">
-          <div style="font-weight:bold; font-size:13px; margin-bottom:5px; color:var(--primary-color);">अध्याय चुनें (Multiple select kar sakte hain):</div>
-          <div id="chapterCheckboxList"></div>
-        </div>
-
+        <!-- यहाँ हमने पुराने dropdown को हटाकर चेकबॉक्स लिस्ट बॉक्स लगाया है -->
+        <div id="chapterCheckboxContainer" style="margin-bottom: 12px; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--btn-bg); max-height: 180px; overflow-y: auto; display: none; text-align: left;"></div>
+        
         <div class="challenge-grid">
           <div><label>सवाल:</label><input type="number" id="customLimit" placeholder="10"></div>
           <div><label>मिनट:</label><input type="number" id="customTime" placeholder="5"></div>
@@ -566,13 +541,12 @@
       b.hasAttribute("data-theme") ? b.removeAttribute("data-theme") : b.setAttribute("data-theme", "dark");
     }
 
-    // --- UPDATED: Chapters ke checkboxes dynamic banana ---
+    // मॉडिफाइड फंक्शन: अब यह ड्रॉपडाउन की जगह चेकबॉक्स की लिस्ट जनरेट करता है
     function updateChapters() {
       const s = document.getElementById("subjectSelect").value;
-      const container = document.getElementById("chapterCheckboxArea");
-      const listDiv = document.getElementById("chapterCheckboxList");
+      const container = document.getElementById("chapterCheckboxContainer");
       
-      listDiv.innerHTML = "";
+      container.innerHTML = ""; 
       
       if(s === "all" || !quizData[s]) {
         container.style.display = "none";
@@ -581,20 +555,30 @@
       
       container.style.display = "block";
       
-      // Har chapter ke liye ek checkbox create karein
-      Object.keys(quizData[s]).forEach(chapter => {
-        const label = document.createElement("label");
-        label.className = "checkbox-item";
-        
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.value = chapter;
-        checkbox.className = "chapter-checkbox";
-        
-        label.appendChild(checkbox);
-        label.appendChild(document.createTextNode(" " + chapter));
-        listDiv.appendChild(label);
+      // 'Select All' मास्टर चेकबॉक्स
+      container.innerHTML += `
+        <div style="margin-bottom: 8px; font-weight: 600;">
+          <input type="checkbox" id="selectAllChapters" onchange="toggleAllChapters(this)"> 
+          <label for="selectAllChapters" style="cursor:pointer; color: var(--primary-color);">-- सभी अध्याय (Select All) --</label>
+        </div>
+        <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 6px 0;">
+      `;
+      
+      // चुनी हुई सब्जेक्ट के सभी चैप्टर्स को चेकबॉक्स के रूप में जोड़ना
+      Object.keys(quizData[s]).forEach((chapter, idx) => {
+        container.innerHTML += `
+          <div style="margin: 6px 0; display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" class="chapter-checkbox" value="${chapter}" id="ch_${idx}">
+            <label for="ch_${idx}" style="cursor:pointer; font-size: 15px;">${chapter}</label>
+          </div>
+        `;
       });
+    }
+
+    // सभी चेकबॉक्स को एक साथ टिक/अनटिक करने का हेल्पर फंक्शन
+    function toggleAllChapters(master) {
+      const checkboxes = document.querySelectorAll(".chapter-checkbox");
+      checkboxes.forEach(cb => cb.checked = master.checked);
     }
 
     function toggleTracker() {
@@ -638,44 +622,43 @@
       speak(`${q.question}. विकल्प हैं . . ${q.options.join(", , ")}`);
     }
 
-    // --- UPDATED: Selected Multiple Chapters ke questions merge karna ---
+    // मॉडिफाइड फंक्शन: अब यह मल्टीपल सेलेक्ट किए गए चेकबॉक्स के सवालों को मिक्स करता है
     function startQuiz() {
-      clearSession(); isWeakMode = false;
+      clearSession(); 
+      isWeakMode = false;
       currentSub = document.getElementById("subjectSelect").value;
       
       let allTempQ = [];
-      let selectedChaptersList = [];
-
+      
       if (currentSub === "all") {
-        // Saare subjects ke saare questions
         Object.keys(quizData).forEach(s => Object.keys(quizData[s]).forEach(c => allTempQ = allTempQ.concat(quizData[s][c])));
         currentCh = "all";
       } else {
-        // Ticked/Selected checkboxes nikalein
-        const checkboxes = document.querySelectorAll(".chapter-checkbox:checked");
-        checkboxes.forEach(cb => selectedChaptersList.push(cb.value));
-
-        if(selectedChaptersList.length === 0) {
-          // Agar koi checkbox selected nahi hai par subject selected hai, toh pure subject ke sawal lein
+        const checkedBoxes = document.querySelectorAll(".chapter-checkbox:checked");
+        
+        if(checkedBoxes.length === 0) {
+          // अगर कोई भी चैप्टर टिक नहीं किया, तो पूरे सब्जेक्ट के सवाल ले लें
           Object.keys(quizData[currentSub]).forEach(c => allTempQ = allTempQ.concat(quizData[currentSub][c]));
           currentCh = "all";
         } else {
-          // Jitne checked hain un sabhi chapters ke questions ko merge karein
-          selectedChaptersList.forEach(ch => {
-            allTempQ = allTempQ.concat(quizData[currentSub][ch]);
+          // अगर यूज़र ने अपनी पसंद के चैप्टर्स (2 या 3) टिक किए हैं
+          let selectedChaps = [];
+          checkedBoxes.forEach(cb => {
+            selectedChaps.push(cb.value);
+            allTempQ = allTempQ.concat(quizData[currentSub][cb.value]);
           });
-          // Ek se zyada select hone par Revision status tracking ke liye isko tracker name de dete hain
-          currentCh = selectedChaptersList.length === 1 ? selectedChaptersList[0] : "multi";
+          currentCh = selectedChaps.length === Object.keys(quizData[currentSub]).length ? "all" : "custom_mix";
         }
       }
 
-      if(allTempQ.length === 0) return alert("कृपया कम से कम एक अध्याय चुनें या सवाल उपलब्ध नहीं हैं!");
+      if(allTempQ.length === 0) return alert("सवाल नहीं मिले! कृपया चैप्टर सेलेक्ट करें।");
       
       const limit = parseInt(document.getElementById("customLimit").value);
       selectedQuestions = (limit > 0) ? allTempQ.sort(() => Math.random() - 0.5).slice(0, limit) : allTempQ.sort(() => Math.random() - 0.5);
       
       const mins = parseInt(document.getElementById("customTime").value);
       if(mins > 0) startTimer(mins);
+      
       initQuizUI();
     }
 
@@ -789,9 +772,7 @@
       document.getElementById("timerDisplay").style.display = "none";
       document.getElementById("bookmarkActionBtn").style.display = "none";
       document.getElementById("heartActionBtn").style.display = "none";
-      
-      // Agar user ne SINGLE specific chapter select kiya tha aur score >= 80% aaya tabhi date revision update hoga
-      if (!isWeakMode && (questionsAttempted / selectedQuestions.length) * 100 >= 80 && currentSub !== "all" && currentCh !== "all" && currentCh !== "multi") {
+      if (!isWeakMode && (questionsAttempted / selectedQuestions.length) * 100 >= 80 && currentSub !== "all" && currentCh !== "all" && currentCh !== "custom_mix") {
         revisionDates[`${currentSub}_${currentCh}`] = Date.now(); syncToFirebase();
       }
       document.getElementById("quizArea").innerHTML = `<div style="text-align:center;"><h3>🏁 रिजल्ट: ${score}/${selectedQuestions.length}</h3>` + (wrongQuestions.length > 0 ? `<button class="main-btn" style="background:#f39c12; color:white;" onclick="retryWrong()">🔄 गलत सुधारें (${wrongQuestions.length})</button>` : "") + `<button class="main-btn" onclick="goToHome()">🏠 होम</button></div>`;
@@ -823,7 +804,7 @@
     function checkSavedBtn() { document.getElementById("savedPracticeBtn").style.display = savedList.length > 0 ? "flex" : "none"; }
     function updateWeakBtn() { document.getElementById("weakAreasBtn").style.display = (weakList.length > 0) ? "flex" : "none"; if(document.getElementById("weakCount")) document.getElementById("weakCount").innerText = weakList.length; }
     function startSavedPractice() { clearSession(); isWeakMode = false; selectedQuestions = [...savedList].sort(() => Math.random() - 0.5); initQuizUI(); }
-    function startWeakAreasQuiz() { clearSession(); isWeakMode = true; selectedQuestions = [...weakList].sort(() => Math.random() - 0.5); initQuizUI); }
+    function startWeakAreasQuiz() { clearSession(); isWeakMode = true; selectedQuestions = [...weakList].sort(() => Math.random() - 0.5); initQuizUI(); }
     function retryWrong() { selectedQuestions = [...wrongQuestions]; initQuizUI(); }
     function quitQuiz() { if(confirm("क्विज़ छोड़ें?")) showFinalResult(); }
   </script>
