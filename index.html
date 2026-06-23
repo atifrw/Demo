@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>📖 Quiz 3 - Premium Explanation Edition</title>
+  <title>📖 Quiz 3 - Premium Edition</title>
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
   
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -104,10 +104,21 @@
     h2 { text-align: center; margin-top: 0; color: var(--primary-color); }
     select, input, .main-btn { padding: 12px; font-size: 16px; margin-bottom: 12px; width: 100%; border-radius: 10px; border: 1px solid var(--border-color); background-color: var(--btn-bg); color: var(--text-color); box-sizing: border-box; }
     
-    /* --- ORIGINAL GRID BUTTON STYLES RESTORED --- */
-    .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-    .grid-btn { padding: 15px; font-size: 14px; cursor: pointer; border-radius: 10px; border: 1px solid var(--border-color); background: var(--btn-bg); color: var(--text-color); font-weight: bold; transition: 0.2s; }
-    .grid-btn:hover { background: var(--border-color); }
+    /* --- GRID BUTTON STYLES --- */
+    .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+    .grid-card { display: flex; align-items: center; padding: 20px 15px; min-height: 100px; border-radius: 20px; border: none; cursor: pointer; text-align: left; transition: 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .grid-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+    
+    .orange-card { background: linear-gradient(135deg, #fff9f0 0%, #ffe8cc 100%); color: #d9480f; border: 1px solid #ffdec0; }
+    .blue-card   { background: linear-gradient(135deg, #f0f7ff 0%, #d0ebff 100%); color: #1971c2; border: 1px solid #b2dfff; }
+    .red-card    { background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%); color: #c92a2a; border: 1px solid #ffc9c9; }
+    .yellow-card { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); color: #92400e; border: 1px solid #fde68a; }
+    [data-theme="dark"] .grid-card { opacity: 0.95; filter: brightness(0.9); }
+
+    .card-icon { font-size: 38px; margin-right: 15px; } 
+    .card-content { display: flex; flex-direction: column; }
+    .card-title { font-weight: 600; font-size: 17px; } 
+    .card-sub { font-size: 11.5px; opacity: 0.8; margin-top: 5px; line-height: 1.3; } 
 
     .challenge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; background: var(--bg-color); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); }
     .challenge-grid label { font-size: 13px; font-weight: bold; margin-bottom: 5px; display: block; }
@@ -119,96 +130,127 @@
     #nextBtn { display: none; background: #10b981 !important; color: white !important; border: none; text-align: center; margin-top: 15px; width: 100%; padding: 14px; border-radius: 12px; font-size: 18px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); transition: 0.2s; }
     #nextBtn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); }
 
-    /* --- PREMIUM COLLAPSIBLE EXPLANATION STYLES --- */
+    /* --- PREMIUM EXPLANATION STYLES (Code 1 Style) --- */
     .explanation-box { 
       display: none; 
-      background: var(--exp-bg); 
-      border-left: 5px solid var(--exp-border); 
-      padding: 18px; 
+      background: linear-gradient(135deg, var(--exp-bg), #f1f5f9);
+      border-left: 6px solid var(--exp-border); 
+      padding: 20px 24px; 
       margin-top: 20px; 
-      border-radius: 14px; 
+      border-radius: 16px; 
       font-size: 16px; 
-      line-height: 1.6; 
+      line-height: 1.7; 
       color: var(--text-color); 
-      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+      transition: all 0.3s ease;
       position: relative;
     }
+    [data-theme="dark"] .explanation-box {
+      background: linear-gradient(135deg, var(--exp-bg), #1e293b);
+    }
+    
     .explanation-header-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
-      border-bottom: 1px dashed var(--border-color);
-      padding-bottom: 6px;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid rgba(59, 130, 246, 0.12);
     }
+    
     .explanation-title {
-      font-weight: 600;
-      color: var(--exp-border);
+      font-weight: 700;
+      font-size: 17px;
+      background: linear-gradient(135deg, var(--exp-border), #6366f1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
+    
     .edit-exp-toggle-btn {
-      background: none;
+      background: linear-gradient(135deg, var(--primary-color), #6366f1);
+      color: white;
       border: none;
-      color: var(--primary-color);
+      padding: 8px 20px;
+      border-radius: 20px;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 6px;
-      transition: 0.2s;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
     }
+    
     .edit-exp-toggle-btn:hover {
-      background: var(--btn-bg);
-      text-decoration: underline;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(79, 70, 229, 0.4);
+    }
+    
+    .edit-exp-toggle-btn:active {
+      transform: translateY(0px);
     }
     
     .explanation-input-area { 
       display: none;
-      margin-top: 15px; 
-      padding: 16px; 
-      background: var(--card-bg); 
-      border: 1px solid var(--border-color); 
-      border-radius: 14px; 
-      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      margin-top: 16px; 
+      padding: 20px; 
+      background: linear-gradient(135deg, var(--card-bg), #f8fafc);
+      border: 2px solid var(--border-color); 
+      border-radius: 16px; 
+      box-shadow: 0 10px 40px rgba(0,0,0,0.06);
       animation: fadeIn 0.3s ease-out;
+      transition: all 0.3s ease;
     }
+    [data-theme="dark"] .explanation-input-area {
+      background: linear-gradient(135deg, var(--card-bg), #1e293b);
+    }
+    
     .explanation-input-area textarea { 
       width: 100%; 
-      height: 80px; 
-      padding: 12px; 
-      border-radius: 10px; 
-      border: 1px solid var(--border-color); 
+      height: 90px; 
+      padding: 14px; 
+      border-radius: 12px; 
+      border: 2px solid var(--border-color); 
       background: var(--btn-bg); 
       color: var(--text-color); 
       resize: vertical; 
       box-sizing: border-box; 
       font-family: inherit; 
-      font-size: 14px; 
-      transition: 0.3s;
+      font-size: 15px; 
+      line-height: 1.6;
+      transition: all 0.3s ease;
     }
+    
     .explanation-input-area textarea:focus {
       border-color: var(--primary-color);
       outline: none;
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+      box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
     }
+    
     .save-exp-btn { 
-      background: var(--primary-color); 
+      background: linear-gradient(135deg, #10b981, #059669);
       color: white; 
       border: none; 
-      padding: 10px 18px; 
-      border-radius: 8px; 
+      padding: 12px 28px; 
+      border-radius: 12px; 
       cursor: pointer; 
-      margin-top: 10px; 
-      font-size: 14px; 
+      margin-top: 12px; 
+      font-size: 15px; 
       font-weight: 600; 
-      transition: 0.2s;
-      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+      letter-spacing: 0.3px;
     }
+    
     .save-exp-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 14px rgba(79, 70, 229, 0.3);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(16, 185, 129, 0.4);
+    }
+    
+    .save-exp-btn:active {
+      transform: translateY(0px);
     }
     
     .backup-area { display: flex; gap: 10px; margin-top: 15px; border-top: 1px dashed var(--border-color); padding-top: 15px; }
@@ -221,6 +263,14 @@
     .status-green { background: #2ecc71; }
     .status-yellow { background: #f1c40f; }
     .status-red { background: #e74c3c; }
+
+    @media (max-width: 500px) {
+      .button-grid { grid-template-columns: 1fr; }
+      .explanation-box { padding: 16px; }
+      .explanation-title { font-size: 15px; }
+      .edit-exp-toggle-btn { padding: 6px 16px; font-size: 12px; }
+      .save-exp-btn { padding: 10px 20px; font-size: 14px; }
+    }
   </style>
 </head>
 <body>
@@ -291,12 +341,35 @@
         </div>
         <button class="main-btn" onclick="startQuiz()" style="background: var(--primary-color); color: white;">🚀 Start Quiz</button>
         
-        <!-- ORIGINAL ORIGINAL BUTTON GRID RESTORED -->
         <div class="button-grid">
-          <button id="weakAreasBtn" class="grid-btn" style="display:none; background:#ffebd5;" onclick="startWeakAreasQuiz()">🎯 Weak Areas (<span id="weakCount">0</span>)</button>
-          <button id="collectionMainBtn" class="grid-btn" style="display:none; background:#e0f2fe;" onclick="toggleCollection()">📚 My Collections</button>
-          <button class="grid-btn" onclick="toggleTracker()">📊 Revision Tracker</button>
-          <button id="savedPracticeBtn" class="grid-btn" style="display:none; background:#fef3c7;" onclick="startSavedPractice()">⭐ Save Question</button>
+            <button id="weakAreasBtn" class="grid-card orange-card" style="display:none;" onclick="startWeakAreasQuiz()">
+                <div class="card-icon">🎯</div>
+                <div class="card-content">
+                    <div class="card-title">Weak Areas (<span id="weakCount">0</span>)</div>
+                    <div class="card-sub">Focus on your weak areas & improve them.</div>
+                </div>
+            </button>
+            <button id="collectionMainBtn" class="grid-card blue-card" style="display:none;" onclick="toggleCollection()">
+                <div class="card-icon">📚</div>
+                <div class="card-content">
+                    <div class="card-title">My Collections</div>
+                    <div class="card-sub">Organize & review questions by subject.</div>
+                </div>
+            </button>
+            <button class="grid-card red-card" onclick="toggleTracker()">
+                <div class="card-icon">📊</div>
+                <div class="card-content">
+                    <div class="card-title">Revision Tracker</div>
+                    <div class="card-sub">Monitor your scores and track progress.</div>
+                </div>
+            </button>
+            <button id="savedPracticeBtn" class="grid-card yellow-card" style="display:none;" onclick="startSavedPractice()">
+                <div class="card-icon">⭐</div>
+                <div class="card-content">
+                    <div class="card-title">Save Question</div>
+                    <div class="card-sub">Practice your bookmarked questions.</div>
+                </div>
+            </button>
         </div>
 
         <div class="backup-area">
@@ -717,7 +790,6 @@
         <div id="resultBox" style="text-align:center; font-weight:bold; margin-top:10px;"></div>
         <button id="nextBtn" onclick="nextQuestionTrigger()">➡️ अगला सवाल</button>
         
-        <!-- PREMIUM COLLAPSIBLE STRUCTURE FOR EXPLANATION -->
         <div id="explanationBox" class="explanation-box"></div>
         
         <div id="inputExpArea" class="explanation-input-area">
@@ -757,6 +829,7 @@
       
       q.customExplanation = text;
       
+      // Live dynamic layout up-gradation
       const eBox = document.getElementById("explanationBox");
       eBox.innerHTML = `
         <div class="explanation-header-row">
@@ -835,6 +908,7 @@
             `; 
             eBox.style.display = "block"; 
           } else {
+            // Agar pehle se koi explanation nahi hai toh use empty text ke sath setup dein
             eBox.innerHTML = `
               <div class="explanation-header-row">
                 <span class="explanation-title">💡 व्याख्या</span>
@@ -895,7 +969,7 @@
       clearSession(); isWeakMode = false; selectedQuestions = [...qs].sort(() => Math.random() - 0.5); initQuizUI();
     }
 
-    function updateCollectionBtn() { document.getElementById("collectionMainBtn").style.display = Object.keys(collections).length > 0 ? "inline-block" : "none"; }
+    function updateCollectionBtn() { document.getElementById("collectionMainBtn").style.display = Object.keys(collections).length > 0 ? "flex" : "none"; }
     function nextQuestionTrigger() { window.speechSynthesis.cancel(); currentIdx++; if(currentIdx < selectedQuestions.length) { saveCurrentSession(); showQuestion(); } else { showFinalResult(); } }
     
     function showFinalResult() {
@@ -932,8 +1006,8 @@
     
     function startTimer(m) { let t = m * 60; document.getElementById("timerDisplay").style.display = "block"; timerInterval = setInterval(() => { let mins = Math.floor(t/60), secs = t%60; document.getElementById("timerDisplay").innerText = `⏳ ${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`; if (--t < 0) { clearInterval(timerInterval); showFinalResult(); } }, 1000); }
     function handleBookmarkClick() { const q = selectedQuestions[currentIdx], idx = savedList.findIndex(i => i.question === q.question); idx > -1 ? savedList.splice(idx, 1) : savedList.push(q); syncToFirebase(); checkSavedBtn(); document.getElementById("bookmarkActionBtn").classList.toggle("active"); }
-    function checkSavedBtn() { document.getElementById("savedPracticeBtn").style.display = savedList.length > 0 ? "inline-block" : "none"; }
-    function updateWeakBtn() { document.getElementById("weakAreasBtn").style.display = (weakList.length > 0) ? "inline-block" : "none"; if(document.getElementById("weakCount")) document.getElementById("weakCount").innerText = weakList.length; }
+    function checkSavedBtn() { document.getElementById("savedPracticeBtn").style.display = savedList.length > 0 ? "flex" : "none"; }
+    function updateWeakBtn() { document.getElementById("weakAreasBtn").style.display = (weakList.length > 0) ? "flex" : "none"; if(document.getElementById("weakCount")) document.getElementById("weakCount").innerText = weakList.length; }
     function startSavedPractice() { clearSession(); isWeakMode = false; selectedQuestions = [...savedList].sort(() => Math.random() - 0.5); initQuizUI(); }
     function startWeakAreasQuiz() { clearSession(); isWeakMode = true; selectedQuestions = [...weakList].sort(() => Math.random() - 0.5); initQuizUI(); }
     function retryWrong() { selectedQuestions = [...wrongQuestions]; initQuizUI(); }
