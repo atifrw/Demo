@@ -14,13 +14,12 @@
     :root {
       --bg-color: #f5f2eb; --card-bg: #ffffff; --text-color: #2c3e50;
       --question-bg: #ffffff; --border-color: #e0dcd0; --btn-bg: #faf9f6; 
-      --primary-color: #4f46e5; --progress-color: #10b981;
-      --exp-bg: #f8fafc; --exp-border: #3b82f6;
+      --primary-color: #5d6d7e; --progress-color: #27ae60;
     }
     [data-theme="dark"] {
-      --bg-color: #111827; --card-bg: #1f2937; --text-color: #f3f4f6;
-      --question-bg: #374151; --border-color: #4b5563; --btn-bg: #374151;
-      --primary-color: #818cf8; --exp-bg: #1f2937; --exp-border: #60a5fa;
+      --bg-color: #1a1a1a; --card-bg: #2d2d2d; --text-color: #e0e0e0;
+      --question-bg: #3d3d3d; --border-color: #444; --btn-bg: #3a3a3a;
+      --primary-color: #8da2b5;
     }
     body { font-family: 'Rubik', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 15px; transition: 0.3s; }
     
@@ -30,7 +29,7 @@
       background: linear-gradient(135deg, #f5f2eb 0%, #e0dcd0 100%);
       display: flex; align-items: center; justify-content: center; z-index: 9999;
     }
-    [data-theme="dark"] #loginArea { background: linear-gradient(135deg, #111827 0%, #030712 100%); }
+    [data-theme="dark"] #loginArea { background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%); }
 
     .login-glass-card {
       background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(15px);
@@ -38,14 +37,14 @@
       border-radius: 30px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.1);
       max-width: 400px; width: 90%; animation: fadeIn 0.8s ease-out;
     }
-    [data-theme="dark"] .login-glass-card { background: rgba(31, 41, 55, 0.7); border-color: rgba(255, 255, 255, 0.1); }
+    [data-theme="dark"] .login-glass-card { background: rgba(45, 45, 45, 0.7); border-color: rgba(255, 255, 255, 0.1); }
 
     .login-brand-icon { font-size: 50px; margin-bottom: 10px; display: block; }
     .login-glass-card h1 { margin: 0; font-size: 26px; color: var(--text-color); font-weight: 600; }
     
     .input-group { margin-bottom: 15px; text-align: left; }
     .input-group label { display: block; font-size: 12px; margin-bottom: 5px; font-weight: bold; }
-    .login-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); font-family: inherit; box-sizing: border-box; }
+    .login-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; background: white; font-family: inherit; box-sizing: border-box; }
 
     .modern-google-btn {
       background: white; color: #2c3e50; border: 1px solid #ddd; padding: 12px 24px;
@@ -61,7 +60,10 @@
     .guest-btn { background: white; color: #3c4043;  border: 1px solid #ddd; padding: 12px 24px; border-radius: 12px;
       width: 100%; margin-top: 15px; cursor: pointer; font-size: 14px; font-weight: 500; display: flex;
       align-items: center; justify-content: center; gap: 10px; transition: all 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-    .guest-btn:hover { background-color: #f8f9fa; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
+    .guest-btn:hover {
+      background-color: #f8f9fa;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    }
 
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -75,12 +77,17 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; flex-direction: column;
       z-index: 10000; overflow: hidden;
     }
-    .profile-dropdown button { padding: 12px 15px; border: none; background: transparent; color: var(--text-color); text-align: left; cursor: pointer; font-size: 14px; transition: 0.2s; }
+    .profile-dropdown button {
+      padding: 12px 15px; border: none; background: transparent; color: var(--text-color);
+      text-align: left; cursor: pointer; font-size: 14px; transition: 0.2s;
+    }
     .profile-dropdown button:hover { background: var(--btn-bg); }
-    .profile-dropdown .user-info-header { padding: 12px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 13px; color: var(--primary-color); }
+    .profile-dropdown .user-info-header {
+      padding: 12px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 13px; color: var(--primary-color);
+    }
 
     .container { max-width: 700px; margin: auto; background: var(--card-bg); padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: relative; border: 1px solid var(--border-color); }
-    .progress-container { width: 100%; background: var(--border-color); height: 8px; border-radius: 5px; margin-bottom: 15px; display: none; }
+    .progress-container { width: 100%; background: #e0dcd0; height: 8px; border-radius: 5px; margin-bottom: 15px; display: none; }
     #progressBar { height: 100%; width: 0%; background: var(--progress-color); border-radius: 5px; transition: 0.4s; }
     
     .header-btns { display: none; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; flex-wrap: nowrap; }
@@ -104,15 +111,28 @@
     h2 { text-align: center; margin-top: 0; color: var(--primary-color); }
     select, input, .main-btn { padding: 12px; font-size: 16px; margin-bottom: 12px; width: 100%; border-radius: 10px; border: 1px solid var(--border-color); background-color: var(--btn-bg); color: var(--text-color); box-sizing: border-box; }
     
-    /* --- GRID BUTTON STYLES --- */
+    /* --- NEW GRID BUTTON STYLES --- */
     .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-    .grid-card { display: flex; align-items: center; padding: 20px 15px; min-height: 100px; border-radius: 20px; border: none; cursor: pointer; text-align: left; transition: 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    
+    .grid-card { 
+      display: flex; 
+      align-items: center; 
+      padding: 20px 15px; 
+      min-height: 100px;  
+      border-radius: 20px; 
+      border: none; 
+      cursor: pointer; 
+      text-align: left; 
+      transition: 0.3s ease; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+    }
     .grid-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
     
     .orange-card { background: linear-gradient(135deg, #fff9f0 0%, #ffe8cc 100%); color: #d9480f; border: 1px solid #ffdec0; }
     .blue-card   { background: linear-gradient(135deg, #f0f7ff 0%, #d0ebff 100%); color: #1971c2; border: 1px solid #b2dfff; }
     .red-card    { background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%); color: #c92a2a; border: 1px solid #ffc9c9; }
     .yellow-card { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); color: #92400e; border: 1px solid #fde68a; }
+    
     [data-theme="dark"] .grid-card { opacity: 0.95; filter: brightness(0.9); }
 
     .card-icon { font-size: 38px; margin-right: 15px; } 
@@ -124,104 +144,11 @@
     .challenge-grid label { font-size: 13px; font-weight: bold; margin-bottom: 5px; display: block; }
     .question-card { background: var(--question-bg); border-left: 6px solid var(--primary-color); padding: 20px; border-radius: 12px; margin-bottom: 20px; font-size: 24px; font-weight: 550; line-height: 1.5; position: relative; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
     .speak-btn { position: absolute; right: 10px; top: 10px; background: none; border: none; cursor: pointer; font-size: 20px; opacity: 0.6; }
-    
     .option-btn { display: block; background: var(--card-bg); border: 2px solid var(--border-color); color: var(--text-color); padding: 14px; margin: 10px 0; border-radius: 10px; cursor: pointer; width: 100%; text-align: left; font-size: 19px; font-weight: 500; transition: 0.2s; }
     .option-btn:hover { border-color: var(--primary-color); background: var(--btn-bg); }
-    #nextBtn { display: none; background: #10b981 !important; color: white !important; border: none; text-align: center; margin-top: 15px; width: 100%; padding: 14px; border-radius: 12px; font-size: 18px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); transition: 0.2s; }
-    #nextBtn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); }
-
-    /* --- REFACTORED PREMIUM EXPLANATION STYLES --- */
-    .explanation-box { 
-      display: none; 
-      background: var(--exp-bg); 
-      border-left: 5px solid var(--exp-border); 
-      padding: 18px; 
-      margin-top: 20px; 
-      border-radius: 14px; 
-      font-size: 16px; 
-      line-height: 1.6; 
-      color: var(--text-color); 
-      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-      position: relative;
-    }
-    .explanation-header-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      border-bottom: 1px dashed var(--border-color);
-      padding-bottom: 6px;
-    }
-    .explanation-title {
-      font-weight: 600;
-      color: var(--exp-border);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .edit-exp-toggle-btn {
-      background: none;
-      border: none;
-      color: var(--primary-color);
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      padding: 4px 8px;
-      border-radius: 6px;
-      transition: 0.2s;
-    }
-    .edit-exp-toggle-btn:hover {
-      background: var(--btn-bg);
-      text-decoration: underline;
-    }
-    
-    .explanation-input-area { 
-      display: none;
-      margin-top: 15px; 
-      padding: 16px; 
-      background: var(--card-bg); 
-      border: 1px solid var(--border-color); 
-      border-radius: 14px; 
-      box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-      animation: fadeIn 0.3s ease-out;
-    }
-    .explanation-input-area textarea { 
-      width: 100%; 
-      height: 80px; 
-      padding: 12px; 
-      border-radius: 10px; 
-      border: 1px solid var(--border-color); 
-      background: var(--btn-bg); 
-      color: var(--text-color); 
-      resize: vertical; 
-      box-sizing: border-box; 
-      font-family: inherit; 
-      font-size: 14px; 
-      transition: 0.3s;
-    }
-    .explanation-input-area textarea:focus {
-      border-color: var(--primary-color);
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
-    }
-    .save-exp-btn { 
-      background: var(--primary-color); 
-      color: white; 
-      border: none; 
-      padding: 10px 18px; 
-      border-radius: 8px; 
-      cursor: pointer; 
-      margin-top: 10px; 
-      font-size: 14px; 
-      font-weight: 600; 
-      transition: 0.2s;
-      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
-    }
-    .save-exp-btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 14px rgba(79, 70, 229, 0.3);
-    }
-    
+    #nextBtn { display: none; background: #28a745 !important; color: white !important; border: none; text-align: center; margin-top: 15px; width: 100%; padding: 14px; border-radius: 10px; font-size: 18px; cursor: pointer; }
+    .explanation-box { display: none; background: #eef2f7; border-left: 5px solid #3498db; padding: 15px; margin-top: 15px; border-radius: 8px; font-size: 16px; line-height: 1.6; color: var(--text-color); }
+    [data-theme="dark"] .explanation-box { background: #3a3a3a; border-left-color: #8da2b5; }
     .backup-area { display: flex; gap: 10px; margin-top: 15px; border-top: 1px dashed var(--border-color); padding-top: 15px; }
     .backup-btn { flex: 1; padding: 10px; font-size: 12px; cursor: pointer; border-radius: 8px; border: 1px solid var(--border-color); background: var(--btn-bg); color: var(--text-color); font-weight: bold; }
     .tracker-card, .collection-card { display: none; margin-top: 10px; border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; background: var(--card-bg); }
@@ -298,13 +225,14 @@
         <button id="resumeBtn" class="main-btn" style="background: #9b59b6; color: white; display: none;" onclick="resumeQuiz()">🕒 पिछला क्विज़ जारी रखें</button>
         <select id="subjectSelect" onchange="updateChapters()"><option value="all">-- सभी विषय --</option></select>
         
+        <!-- यहाँ हमने पुराने dropdown को हटाकर चेकबॉक्स लिस्ट बॉक्स लगाया है -->
         <div id="chapterCheckboxContainer" style="margin-bottom: 12px; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--btn-bg); max-height: 180px; overflow-y: auto; display: none; text-align: left;"></div>
         
         <div class="challenge-grid">
           <div><label>सवाल:</label><input type="number" id="customLimit" placeholder="10"></div>
           <div><label>मिनट:</label><input type="number" id="customTime" placeholder="5"></div>
         </div>
-        <button class="main-btn" onclick="startQuiz()" style="background: var(--primary-color); color: white;">🚀 Start Quiz</button>
+        <button class="main-btn" onclick="startQuiz()" style="background: #5d6d7e; color: white;">🚀 Start Quiz</button>
         
         <div class="button-grid">
             <button id="weakAreasBtn" class="grid-card orange-card" style="display:none;" onclick="startWeakAreasQuiz()">
@@ -377,6 +305,7 @@
     let savedList = [], revisionDates = {}, weakList = [], collections = {};
     let isGuest = false;
 
+    // --- MOBILE BACK BUTTON HANDLER ---
     window.onpopstate = function(event) {
       if (document.getElementById("quizArea").style.display === "block" || 
           document.getElementById("trackerArea").style.display === "block" ||
@@ -523,7 +452,7 @@
         } else {
             const user = auth.currentUser;
             if (!user) return;
-            database.ref('users/' + user.uid).update(dataToSave);
+            database.ref('users/' + user.uid).set(dataToSave);
         }
     }
 
@@ -612,6 +541,7 @@
       b.hasAttribute("data-theme") ? b.removeAttribute("data-theme") : b.setAttribute("data-theme", "dark");
     }
 
+        // मॉडिफाइड फंक्शन: अब चेकबॉक्स एकदम प्रोफेशनल और पास-पास दिखेंगे
     function updateChapters() {
       const s = document.getElementById("subjectSelect").value;
       const container = document.getElementById("chapterCheckboxContainer");
@@ -625,6 +555,7 @@
       
       container.style.display = "block";
       
+      // 'Select All' मास्टर चेकबॉक्स (खूबसूरत लुक के साथ)
       container.innerHTML += `
         <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px; font-weight: 600;">
           <input type="checkbox" id="selectAllChapters" onchange="toggleAllChapters(this)" style="width: 18px; height: 18px; cursor: pointer;"> 
@@ -633,6 +564,7 @@
         <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 8px 0;">
       `;
       
+      // चुनी हुई सब्जेक्ट के सभी चैप्टर्स को एक साफ़ सुथरी रो (Row) में सेट करना
       Object.keys(quizData[s]).forEach((chapter, idx) => {
         container.innerHTML += `
           <div style="margin: 8px 0; display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%;">
@@ -642,11 +574,6 @@
         `;
       });
     }
-
-    function toggleAllChapters(master) {
-      const checkboxes = document.querySelectorAll(".chapter-checkbox");
-      checkboxes.forEach(cb => cb.checked = master.checked);
-    }
     
     function toggleTracker() {
       const area = document.getElementById("trackerArea");
@@ -654,14 +581,6 @@
       if(area.style.display === "block") {
         renderTracker();
         history.pushState({page: "tracker"}, "Tracker");
-      }
-    }
-
-    // TOGGLE EDIT BOX SYSTEM
-    function toggleEditExplanation() {
-      const inputArea = document.getElementById("inputExpArea");
-      if(inputArea) {
-        inputArea.style.display = (inputArea.style.display === "block") ? "none" : "block";
       }
     }
 
@@ -694,9 +613,10 @@
     }
     function readFullQuestion() {
       const q = selectedQuestions[currentIdx];
-      speak(`${q.question}. विकल्प hain . . ${q.options.join(", , ")}`);
+      speak(`${q.question}. विकल्प हैं . . ${q.options.join(", , ")}`);
     }
 
+    // मॉडिफाइड फंक्शन: अब यह मल्टीपल सेलेक्ट किए गए चेकबॉक्स के सवालों को मिक्स करता है
     function startQuiz() {
       clearSession(); 
       isWeakMode = false;
@@ -711,9 +631,11 @@
         const checkedBoxes = document.querySelectorAll(".chapter-checkbox:checked");
         
         if(checkedBoxes.length === 0) {
+          // अगर कोई भी चैप्टर टिक नहीं किया, तो पूरे सब्जेक्ट के सवाल ले लें
           Object.keys(quizData[currentSub]).forEach(c => allTempQ = allTempQ.concat(quizData[currentSub][c]));
           currentCh = "all";
         } else {
+          // अगर यूज़र ने अपनी पसंद के चैप्टर्स (2 या 3) टिक किए हैं
           let selectedChaps = [];
           checkedBoxes.forEach(cb => {
             selectedChaps.push(cb.value);
@@ -754,90 +676,16 @@
         <div id="optionsBox"></div>
         <div id="resultBox" style="text-align:center; font-weight:bold; margin-top:10px;"></div>
         <button id="nextBtn" onclick="nextQuestionTrigger()">➡️ अगला सवाल</button>
-        
-        <div id="explanationBox" class="explanation-box"></div>
-        
-        <div id="inputExpArea" class="explanation-input-area">
-          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:8px; color: var(--text-color);">📝 व्याख्या लाइव एडिट करें:</label>
-          <textarea id="customExpText" placeholder="यहाँ अपनी व्याख्या या शार्ट नोट्स टाइप करें..."></textarea>
-          <button class="save-exp-btn" onclick="saveCustomExplanation()">✔ व्याख्या सुरक्षित करें</button>
-        </div>`;
+        <div id="explanationBox" class="explanation-box"></div>`;
     }
 
     function findQuestionMeta(q) {
       for(let s in quizData) for(let c in quizData[s]) if(quizData[s][c].some(item => item.question === q.question)) { q.sub = s; q.ch = c; return; }
     }
 
-    function getSafeQuestionKey(qText) {
-      return btoa(unescape(encodeURIComponent(qText))).replace(/[/=+]/g, '_');
-    }
-
-    function saveCustomExplanation() {
-      const q = selectedQuestions[currentIdx];
-      const text = document.getElementById("customExpText").value.trim();
-      const qKey = getSafeQuestionKey(q.question);
-      
-      if(!text) return alert("कृपया पहले कुछ व्याख्या लिखें!");
-
-      if(isGuest) {
-        let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
-        localExps[qKey] = text;
-        localStorage.setItem("quiz_custom_explanations", JSON.stringify(localExps));
-        alert("व्याख्या सुरक्षित हो गई (Guest Local Mode)!");
-      } else {
-        const user = auth.currentUser;
-        if (!user) return alert("लॉगिन करें ताकि डेटा क्लाउड पर सुरक्षित हो सके!");
-        database.ref('users/' + user.uid + '/custom_explanations/' + qKey).set(text)
-        .then(() => alert("व्याख्या Firebase में लाइव सुरक्षित हो गई!"))
-        .catch(e => alert("Error: " + e.message));
-      }
-      
-      q.customExplanation = text;
-      
-      // Live dynamic layout up-gradation
-      const eBox = document.getElementById("explanationBox");
-      eBox.innerHTML = `
-        <div class="explanation-header-row">
-          <span class="explanation-title">✨ व्याख्या (Live Updated)</span>
-          <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
-        </div>
-        <div>${text}</div>
-      `;
-      eBox.style.display = "block";
-      document.getElementById("inputExpArea").style.display = "none";
-    }
-
     function showQuestion() {
       const q = selectedQuestions[currentIdx];
       if(!q.sub || !q.ch) findQuestionMeta(q);
-
-      if(document.getElementById("inputExpArea")) document.getElementById("inputExpArea").style.display = "none";
-
-      const qKey = getSafeQuestionKey(q.question);
-      if(!q.customExplanation) {
-        if(isGuest) {
-          let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
-          if(localExps[qKey]) q.customExplanation = localExps[qKey];
-        } else {
-          const user = auth.currentUser;
-          if(user) {
-            database.ref('users/' + user.uid + '/custom_explanations/' + qKey).once('value').then(snap => {
-              if(snap.exists()) {
-                q.customExplanation = snap.val();
-                if(document.getElementById("explanationBox") && document.getElementById("explanationBox").style.display === "block") {
-                  document.getElementById("explanationBox").innerHTML = `
-                    <div class="explanation-header-row">
-                      <span class="explanation-title">💡 व्याख्या</span>
-                      <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
-                    </div>
-                    <div>${q.customExplanation}</div>`;
-                }
-              }
-            });
-          }
-        }
-      }
-
       document.getElementById("progressBar").style.width = (currentIdx / selectedQuestions.length) * 100 + "%";
       document.getElementById("qCount").innerText = `सवाल: ${currentIdx + 1} / ${selectedQuestions.length}`;
       document.getElementById("questionBox").innerHTML = `${q.question} <button class="speak-btn" onclick="readFullQuestion()">🔊</button>`;
@@ -847,44 +695,20 @@
       document.getElementById("heartActionBtn").classList.toggle("active", isHearted);
       const oBox = document.getElementById("optionsBox"), rBox = document.getElementById("resultBox"), nBtn = document.getElementById("nextBtn"), eBox = document.getElementById("explanationBox");
       oBox.innerHTML = ""; rBox.innerText = ""; nBtn.style.display = "none"; eBox.style.display = "none"; 
-      
       q.options.forEach((opt) => {
         const b = document.createElement("button"); b.className = "option-btn"; b.innerText = opt;
         b.onclick = () => {
           questionsAttempted++;
           document.querySelectorAll(".option-btn").forEach(btn => btn.style.pointerEvents = "none");
           if(opt === q.answer) { 
-            score++; rBox.innerHTML = "<span style='color:#10b981'>✅ सही जवाब!</span>"; 
+            score++; rBox.innerHTML = "<span style='color:#27ae60'>✅ सही!</span>"; 
             if(isWeakMode) { weakList = weakList.filter(i => i.question !== q.question); syncToFirebase(); }
           } else { 
-            rBox.innerHTML = `<span style='color:#e74c3c'>❌ गलत जवाब! सही उत्तर: ${q.answer}</span>`; 
+            rBox.innerHTML = `<span style='color:#e74c3c'>❌ गलत! सही: ${q.answer}</span>`; 
             wrongQuestions.push(q); 
             if(!weakList.some(i => i.question === q.question)) { weakList.push(q); syncToFirebase(); }
           }
-          
-          const finalExp = q.customExplanation || q.explanation;
-          if(finalExp) { 
-            eBox.innerHTML = `
-              <div class="explanation-header-row">
-                <span class="explanation-title">💡 व्याख्या</span>
-                <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
-              </div>
-              <div>${finalExp}</div>
-            `; 
-            eBox.style.display = "block"; 
-          } else {
-            // Agar pehle se koi explanation nahi hai toh use empty text ke sath setup dein
-            eBox.innerHTML = `
-              <div class="explanation-header-row">
-                <span class="explanation-title">💡 व्याख्या</span>
-                <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Add ✎</button>
-              </div>
-              <div style="color: #888; font-style: italic; font-size: 14px;">इस सवाल की कोई व्याख्या नहीं है। नोट्स जोड़ने के लिए Edit पर क्लिक करें।</div>
-            `;
-            eBox.style.display = "block";
-          }
-          
-          document.getElementById("customExpText").value = q.customExplanation || "";
+          if(q.explanation) { eBox.innerHTML = `<strong>💡 व्याख्या:</strong><br>${q.explanation}`; eBox.style.display = "block"; }
           nBtn.style.display = "block"; saveCurrentSession();
         };
         oBox.appendChild(b);
