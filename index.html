@@ -774,123 +774,129 @@
     }
 
     function saveCustomExplanation() {
-      const q = selectedQuestions[currentIdx];
-      const text = document.getElementById("customExpText").value.trim();
-      const qKey = getSafeQuestionKey(q.question);
-      
-      if(!text) return alert("कृपया पहले कुछ व्याख्या लिखें!");
+  const q = selectedQuestions[currentIdx];
+  const text = document.getElementById("customExpText").value.trim();
+  const qKey = getSafeQuestionKey(q.question);
+  
+  if(!text) return alert("कृपया पहले कुछ व्याख्या लिखें!");
 
-      if(isGuest) {
-        let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
-        localExps[qKey] = text;
-        localStorage.setItem("quiz_custom_explanations", JSON.stringify(localExps));
-        alert("व्याख्या सुरक्षित हो गई (Guest Local Mode)!");
-      } else {
-        const user = auth.currentUser;
-        if (!user) return alert("लॉगिन करें ताकि डेटा क्लाउड पर सुरक्षित हो सके!");
-        database.ref('users/' + user.uid + '/custom_explanations/' + qKey).set(text)
-        .then(() => alert("व्याख्या Firebase में लाइव सुरक्षित हो गई!"))
-        .catch(e => alert("Error: " + e.message));
-      }
-      
-      q.customExplanation = text;
-      
-      // Live dynamic layout up-gradation
-      const eBox = document.getElementById("explanationBox");
-      eBox.innerHTML = `
-        <div class="explanation-header-row">
-          <span class="explanation-title">✨ व्याख्या (Live Updated)</span>
-          <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
-        </div>
-        <div>${text}</div>
-      `;
-      eBox.style.display = "block";
-      document.getElementById("inputExpArea").style.display = "none";
-    }
+  // Local object ko sabse pehle naye text se update karein
+  q.customExplanation = text;
+
+  if(isGuest) {
+    let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
+    localExps[qKey] = text;
+    localStorage.setItem("quiz_custom_explanations", JSON.stringify(localExps));
+    alert("व्याख्या सुरक्षित हो गई (Guest Local Mode)!");
+  } else {
+    const user = auth.currentUser;
+    if (!user) return alert("लॉगिन करें ताकि डेटा क्लाउड पर सुरक्षित हो सके!");
+    database.ref('users/' + user.uid + '/custom_explanations/' + qKey).set(text)
+    .then(() => alert("व्याख्या Firebase में लाइव सुरक्षित हो गई!"))
+    .catch(e => alert("Error: " + e.message));
+  }
+  
+  // Live dynamic layout ko refresh karein
+  const eBox = document.getElementById("explanationBox");
+  eBox.innerHTML = `
+    <div class="explanation-header-row">
+      <span class="explanation-title">✨ व्याख्या (Live Updated)</span>
+      <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
+    </div>
+    <div>${text}</div>
+  `;
+  eBox.style.display = "block";
+  document.getElementById("inputExpArea").style.display = "none";
+}
 
     function showQuestion() {
-      const q = selectedQuestions[currentIdx];
-      if(!q.sub || !q.ch) findQuestionMeta(q);
+  const q = selectedQuestions[currentIdx];
+  if(!q.sub || !q.ch) findQuestionMeta(q);
 
-      if(document.getElementById("inputExpArea")) document.getElementById("inputExpArea").style.display = "none";
+  if(document.getElementById("inputExpArea")) document.getElementById("inputExpArea").style.display = "none";
 
-      const qKey = getSafeQuestionKey(q.question);
-      if(!q.customExplanation) {
-        if(isGuest) {
-          let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
-          if(localExps[qKey]) q.customExplanation = localExps[qKey];
-        } else {
-          const user = auth.currentUser;
-          if(user) {
-            database.ref('users/' + user.uid + '/custom_explanations/' + qKey).once('value').then(snap => {
-              if(snap.exists()) {
-                q.customExplanation = snap.val();
-                if(document.getElementById("explanationBox") && document.getElementById("explanationBox").style.display === "block") {
-                  document.getElementById("explanationBox").innerHTML = `
-                    <div class="explanation-header-row">
-                      <span class="explanation-title">💡 व्याख्या</span>
-                      <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
-                    </div>
-                    <div>${q.customExplanation}</div>`;
-                }
-              }
-            });
+  const qKey = getSafeQuestionKey(q.question);
+  
+  // Firebase/Local se data sirf tabhi uthayein jab array mein customExplanation na ho
+  if(!q.customExplanation) {
+    if(isGuest) {
+      let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
+      if(localExps[qKey]) q.customExplanation = localExps[qKey];
+    } else {
+      const user = auth.currentUser;
+      if(user) {
+        database.ref('users/' + user.uid + '/custom_explanations/' + qKey).once('value').then(snap => {
+          if(snap.exists()) {
+            q.customExplanation = snap.val();
+            // Agar user ne abhi tak option click nahi kiya ya click kar chuka hai toh view update karein
+            const eBox = document.getElementById("explanationBox");
+            if(eBox && eBox.style.display === "block") {
+              eBox.innerHTML = `
+                <div class="explanation-header-row">
+                  <span class="explanation-title">💡 व्याख्या</span>
+                  <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
+                </div>
+                <div>${q.customExplanation}</div>`;
+              document.getElementById("customExpText").value = q.customExplanation;
+            }
           }
-        }
+        });
       }
-
-      document.getElementById("progressBar").style.width = (currentIdx / selectedQuestions.length) * 100 + "%";
-      document.getElementById("qCount").innerText = `सवाल: ${currentIdx + 1} / ${selectedQuestions.length}`;
-      document.getElementById("questionBox").innerHTML = `${q.question} <button class="speak-btn" onclick="readFullQuestion()">🔊</button>`;
-      if(document.getElementById("autoReadSwitch").checked) setTimeout(readFullQuestion, 500);
-      document.getElementById("bookmarkActionBtn").classList.toggle("active", savedList.some(item => item.question === q.question));
-      let isHearted = (q.sub && q.ch && collections[q.sub] && collections[q.sub][q.ch]) ? collections[q.sub][q.ch].some(item => item.question === q.question) : false;
-      document.getElementById("heartActionBtn").classList.toggle("active", isHearted);
-      const oBox = document.getElementById("optionsBox"), rBox = document.getElementById("resultBox"), nBtn = document.getElementById("nextBtn"), eBox = document.getElementById("explanationBox");
-      oBox.innerHTML = ""; rBox.innerText = ""; nBtn.style.display = "none"; eBox.style.display = "none"; 
-      
-      q.options.forEach((opt) => {
-        const b = document.createElement("button"); b.className = "option-btn"; b.innerText = opt;
-        b.onclick = () => {
-          questionsAttempted++;
-          document.querySelectorAll(".option-btn").forEach(btn => btn.style.pointerEvents = "none");
-          if(opt === q.answer) { 
-            score++; rBox.innerHTML = "<span style='color:#10b981'>✅ सही जवाब!</span>"; 
-            if(isWeakMode) { weakList = weakList.filter(i => i.question !== q.question); syncToFirebase(); }
-          } else { 
-            rBox.innerHTML = `<span style='color:#e74c3c'>❌ गलत जवाब! सही उत्तर: ${q.answer}</span>`; 
-            wrongQuestions.push(q); 
-            if(!weakList.some(i => i.question === q.question)) { weakList.push(q); syncToFirebase(); }
-          }
-          
-          const finalExp = q.customExplanation || q.explanation;
-          if(finalExp) { 
-            eBox.innerHTML = `
-              <div class="explanation-header-row">
-                <span class="explanation-title">💡 व्याख्या</span>
-                <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
-              </div>
-              <div>${finalExp}</div>
-            `; 
-            eBox.style.display = "block"; 
-          } else {
-            // Agar pehle se koi explanation nahi hai toh use empty text ke sath setup dein
-            eBox.innerHTML = `
-              <div class="explanation-header-row">
-                <span class="explanation-title">💡 व्याख्या</span>
-                <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Add ✎</button>
-              </div>
-              <div style="color: #888; font-style: italic; font-size: 14px;">इस सवाल की कोई व्याख्या नहीं है। नोट्स जोड़ने के लिए Edit पर क्लिक करें।</div>
-            `;
-            eBox.style.display = "block";
-          }
-          
-          document.getElementById("customExpText").value = q.customExplanation || "";
-          nBtn.style.display = "block"; saveCurrentSession();
-        };
-        oBox.appendChild(b);
-      });
     }
+  }
+
+  document.getElementById("progressBar").style.width = (currentIdx / selectedQuestions.length) * 100 + "%";
+  document.getElementById("qCount").innerText = `सवाल: ${currentIdx + 1} / ${selectedQuestions.length}`;
+  document.getElementById("questionBox").innerHTML = `${q.question} <button class="speak-btn" onclick="readFullQuestion()">🔊</button>`;
+  if(document.getElementById("autoReadSwitch").checked) setTimeout(readFullQuestion, 500);
+  document.getElementById("bookmarkActionBtn").classList.toggle("active", savedList.some(item => item.question === q.question));
+  let isHearted = (q.sub && q.ch && collections[q.sub] && collections[q.sub][q.ch]) ? collections[q.sub][q.ch].some(item => item.question === q.question) : false;
+  document.getElementById("heartActionBtn").classList.toggle("active", isHearted);
+  const oBox = document.getElementById("optionsBox"), rBox = document.getElementById("resultBox"), nBtn = document.getElementById("nextBtn"), eBox = document.getElementById("explanationBox");
+  oBox.innerHTML = ""; rBox.innerText = ""; nBtn.style.display = "none"; eBox.style.display = "none"; 
+  
+  q.options.forEach((opt) => {
+    const b = document.createElement("button"); b.className = "option-btn"; b.innerText = opt;
+    b.onclick = () => {
+      questionsAttempted++;
+      document.querySelectorAll(".option-btn").forEach(btn => btn.style.pointerEvents = "none");
+      if(opt === q.answer) { 
+        score++; rBox.innerHTML = "<span style='color:#10b981'>✅ सही जवाब!</span>"; 
+        if(isWeakMode) { weakList = weakList.filter(i => i.question !== q.question); syncToFirebase(); }
+      } else { 
+        rBox.innerHTML = `<span style='color:#e74c3c'>❌ गलत जवाब! सही उत्तर: ${q.answer}</span>`; 
+        wrongQuestions.push(q); 
+        if(!weakList.some(i => i.question === q.question)) { weakList.push(q); syncToFirebase(); }
+      }
+      
+      const finalExp = q.customExplanation || q.explanation;
+      if(finalExp) { 
+        eBox.innerHTML = `
+          <div class="explanation-header-row">
+            <span class="explanation-title">💡 व्याख्या</span>
+            <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
+          </div>
+          <div>${finalExp}</div>
+        `; 
+        eBox.style.display = "block"; 
+      } else {
+        eBox.innerHTML = `
+          <div class="explanation-header-row">
+            <span class="explanation-title">💡 व्याख्या</span>
+            <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Add ✎</button>
+          </div>
+          <div style="color: #888; font-style: italic; font-size: 14px;">इस सवाल की कोई व्याख्या नहीं है। नोट्स जोड़ने के लिए Edit पर क्लिक करें।</div>
+        `;
+        eBox.style.display = "block";
+      }
+      
+      // Yahan textarea mein hamesha fresh current custom value load hogi taaki edit sahi ho
+      document.getElementById("customExpText").value = q.customExplanation || q.explanation || "";
+      nBtn.style.display = "block"; saveCurrentSession();
+    };
+    oBox.appendChild(b);
+  });
+}
 
     function handleHeartClick() {
       const q = selectedQuestions[currentIdx];
