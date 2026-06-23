@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>📖 Quiz 3 - Premium Edition</title>
-  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
   
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -24,6 +24,7 @@
     }
     body { font-family: 'Rubik', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 15px; transition: 0.3s; }
     
+    /* --- MODERN LOGIN INTERFACE --- */
     #loginArea { 
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
       background: linear-gradient(135deg, #f5f2eb 0%, #e0dcd0 100%);
@@ -64,6 +65,7 @@
 
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
+    /* --- PROFILE MENU STYLES --- */
     .user-profile { position: relative; display: none; align-items: center; cursor: pointer; }
     .user-profile img { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--primary-color); }
     
@@ -102,6 +104,7 @@
     h2 { text-align: center; margin-top: 0; color: var(--primary-color); }
     select, input, .main-btn { padding: 12px; font-size: 16px; margin-bottom: 12px; width: 100%; border-radius: 10px; border: 1px solid var(--border-color); background-color: var(--btn-bg); color: var(--text-color); box-sizing: border-box; }
     
+    /* --- GRID BUTTON STYLES --- */
     .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
     .grid-card { display: flex; align-items: center; padding: 20px 15px; min-height: 100px; border-radius: 20px; border: none; cursor: pointer; text-align: left; transition: 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     .grid-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
@@ -127,6 +130,7 @@
     #nextBtn { display: none; background: #10b981 !important; color: white !important; border: none; text-align: center; margin-top: 15px; width: 100%; padding: 14px; border-radius: 12px; font-size: 18px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); transition: 0.2s; }
     #nextBtn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); }
 
+    /* --- REFACTORED PREMIUM EXPLANATION STYLES --- */
     .explanation-box { 
       display: none; 
       background: var(--exp-bg); 
@@ -654,14 +658,11 @@
       }
     }
 
+    // TOGGLE EDIT BOX SYSTEM
     function toggleEditExplanation() {
       const inputArea = document.getElementById("inputExpArea");
       if(inputArea) {
         inputArea.style.display = (inputArea.style.display === "block") ? "none" : "block";
-        if(inputArea.style.display === "block") {
-          const q = selectedQuestions[currentIdx];
-          document.getElementById("customExpText").value = q.customExplanation || q.explanation || "";
-        }
       }
     }
 
@@ -772,87 +773,38 @@
       return btoa(unescape(encodeURIComponent(qText))).replace(/[/=+]/g, '_');
     }
 
-    function updateExplanationBox(q) {
-      const eBox = document.getElementById("explanationBox");
-      if(!eBox) return;
-      
-      const expText = q.customExplanation || q.explanation || "";
-      
-      eBox.innerHTML = `
-        <div class="explanation-header-row">
-          <span class="explanation-title">💡 व्याख्या</span>
-          <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">✎ Edit</button>
-        </div>
-        <div>${expText || "इस सवाल की कोई व्याख्या नहीं है। नोट्स जोड़ने के लिए Edit पर क्लिक करें।"}</div>
-      `;
-      eBox.style.display = "block";
-      
-      const textarea = document.getElementById("customExpText");
-      if(textarea) textarea.value = expText;
-    }
-
-    function loadExplanationForQuestion(q) {
-      const qKey = getSafeQuestionKey(q.question);
-      
-      // First check if custom explanation already exists in memory
-      if(q.customExplanation) {
-        updateExplanationBox(q);
-        return;
-      }
-      
-      if(isGuest) {
-        let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
-        q.customExplanation = localExps[qKey] || q.explanation || "";
-        updateExplanationBox(q);
-      } else {
-        const user = auth.currentUser;
-        if(user) {
-          database.ref('users/' + user.uid + '/custom_explanations/' + qKey).once('value').then(snap => {
-            if(snap.exists()) {
-              q.customExplanation = snap.val();
-            } else {
-              q.customExplanation = q.explanation || "";
-            }
-            updateExplanationBox(q);
-          });
-        } else {
-          q.customExplanation = q.explanation || "";
-          updateExplanationBox(q);
-        }
-      }
-    }
-
     function saveCustomExplanation() {
       const q = selectedQuestions[currentIdx];
       const text = document.getElementById("customExpText").value.trim();
       const qKey = getSafeQuestionKey(q.question);
       
-      if(!text) {
-        alert("कृपया पहले कुछ व्याख्या लिखें!");
-        return;
-      }
-
-      // Update the question object immediately
-      q.customExplanation = text;
+      if(!text) return alert("कृपया पहले कुछ व्याख्या लिखें!");
 
       if(isGuest) {
         let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
         localExps[qKey] = text;
         localStorage.setItem("quiz_custom_explanations", JSON.stringify(localExps));
-        alert("✅ व्याख्या सुरक्षित हो गई (Local Mode)!");
+        alert("व्याख्या सुरक्षित हो गई (Guest Local Mode)!");
       } else {
         const user = auth.currentUser;
-        if (!user) {
-          alert("लॉगिन करें ताकि डेटा क्लाउड पर सुरक्षित हो सके!");
-          return;
-        }
+        if (!user) return alert("लॉगिन करें ताकि डेटा क्लाउड पर सुरक्षित हो सके!");
         database.ref('users/' + user.uid + '/custom_explanations/' + qKey).set(text)
-        .then(() => alert("✅ व्याख्या Firebase में सुरक्षित हो गई!"))
+        .then(() => alert("व्याख्या Firebase में लाइव सुरक्षित हो गई!"))
         .catch(e => alert("Error: " + e.message));
       }
       
-      // Immediately update the UI
-      updateExplanationBox(q);
+      q.customExplanation = text;
+      
+      // Live dynamic layout up-gradation
+      const eBox = document.getElementById("explanationBox");
+      eBox.innerHTML = `
+        <div class="explanation-header-row">
+          <span class="explanation-title">✨ व्याख्या (Live Updated)</span>
+          <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
+        </div>
+        <div>${text}</div>
+      `;
+      eBox.style.display = "block";
       document.getElementById("inputExpArea").style.display = "none";
     }
 
@@ -860,29 +812,42 @@
       const q = selectedQuestions[currentIdx];
       if(!q.sub || !q.ch) findQuestionMeta(q);
 
-      // Reset explanation UI
-      const eBox = document.getElementById("explanationBox");
-      if(eBox) eBox.style.display = "none";
-      
-      const inputArea = document.getElementById("inputExpArea");
-      if(inputArea) inputArea.style.display = "none";
+      if(document.getElementById("inputExpArea")) document.getElementById("inputExpArea").style.display = "none";
 
-      // Update progress
+      const qKey = getSafeQuestionKey(q.question);
+      if(!q.customExplanation) {
+        if(isGuest) {
+          let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
+          if(localExps[qKey]) q.customExplanation = localExps[qKey];
+        } else {
+          const user = auth.currentUser;
+          if(user) {
+            database.ref('users/' + user.uid + '/custom_explanations/' + qKey).once('value').then(snap => {
+              if(snap.exists()) {
+                q.customExplanation = snap.val();
+                if(document.getElementById("explanationBox") && document.getElementById("explanationBox").style.display === "block") {
+                  document.getElementById("explanationBox").innerHTML = `
+                    <div class="explanation-header-row">
+                      <span class="explanation-title">💡 व्याख्या</span>
+                      <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
+                    </div>
+                    <div>${q.customExplanation}</div>`;
+                }
+              }
+            });
+          }
+        }
+      }
+
       document.getElementById("progressBar").style.width = (currentIdx / selectedQuestions.length) * 100 + "%";
       document.getElementById("qCount").innerText = `सवाल: ${currentIdx + 1} / ${selectedQuestions.length}`;
-      
-      // Show question
       document.getElementById("questionBox").innerHTML = `${q.question} <button class="speak-btn" onclick="readFullQuestion()">🔊</button>`;
       if(document.getElementById("autoReadSwitch").checked) setTimeout(readFullQuestion, 500);
-      
-      // Update bookmark & heart status
       document.getElementById("bookmarkActionBtn").classList.toggle("active", savedList.some(item => item.question === q.question));
       let isHearted = (q.sub && q.ch && collections[q.sub] && collections[q.sub][q.ch]) ? collections[q.sub][q.ch].some(item => item.question === q.question) : false;
       document.getElementById("heartActionBtn").classList.toggle("active", isHearted);
-      
-      // Render options
-      const oBox = document.getElementById("optionsBox"), rBox = document.getElementById("resultBox"), nBtn = document.getElementById("nextBtn");
-      oBox.innerHTML = ""; rBox.innerText = ""; nBtn.style.display = "none";
+      const oBox = document.getElementById("optionsBox"), rBox = document.getElementById("resultBox"), nBtn = document.getElementById("nextBtn"), eBox = document.getElementById("explanationBox");
+      oBox.innerHTML = ""; rBox.innerText = ""; nBtn.style.display = "none"; eBox.style.display = "none"; 
       
       q.options.forEach((opt) => {
         const b = document.createElement("button"); b.className = "option-btn"; b.innerText = opt;
@@ -898,10 +863,30 @@
             if(!weakList.some(i => i.question === q.question)) { weakList.push(q); syncToFirebase(); }
           }
           
-          // Load and show explanation
-          loadExplanationForQuestion(q);
-          nBtn.style.display = "block"; 
-          saveCurrentSession();
+          const finalExp = q.customExplanation || q.explanation;
+          if(finalExp) { 
+            eBox.innerHTML = `
+              <div class="explanation-header-row">
+                <span class="explanation-title">💡 व्याख्या</span>
+                <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
+              </div>
+              <div>${finalExp}</div>
+            `; 
+            eBox.style.display = "block"; 
+          } else {
+            // Agar pehle se koi explanation nahi hai toh use empty text ke sath setup dein
+            eBox.innerHTML = `
+              <div class="explanation-header-row">
+                <span class="explanation-title">💡 व्याख्या</span>
+                <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Add ✎</button>
+              </div>
+              <div style="color: #888; font-style: italic; font-size: 14px;">इस सवाल की कोई व्याख्या नहीं है। नोट्स जोड़ने के लिए Edit पर क्लिक करें।</div>
+            `;
+            eBox.style.display = "block";
+          }
+          
+          document.getElementById("customExpText").value = q.customExplanation || "";
+          nBtn.style.display = "block"; saveCurrentSession();
         };
         oBox.appendChild(b);
       });
