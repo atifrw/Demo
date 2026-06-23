@@ -779,20 +779,23 @@
       
       if(!text) return alert("कृपया पहले कुछ व्याख्या लिखें!");
 
-      if(isGuest) {
-        let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
-        localExps[qKey] = text;
-        localStorage.setItem("quiz_custom_explanations", JSON.stringify(localExps));
-        alert("व्याख्या सुरक्षित हो गई (Guest Local Mode)!");
-      } else {
+      // STEP 1: Save INSTANTLY & SYNCHRONOUSLY to localStorage (no network wait, never lost even if you quit immediately)
+      let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
+      localExps[qKey] = text;
+      localStorage.setItem("quiz_custom_explanations", JSON.stringify(localExps));
+
+      q.customExplanation = text; // update in-memory immediately
+
+      // STEP 2: Background best-effort backup to Firebase (for cross-device sync), doesn't block anything
+      if(!isGuest) {
         const user = auth.currentUser;
-        if (!user) return alert("लॉगिन करें ताकि डेटा क्लाउड पर सुरक्षित हो सके!");
-        database.ref('users/' + user.uid + '/custom_explanations/' + qKey).set(text)
-        .then(() => alert("व्याख्या Firebase में लाइव सुरक्षित हो गई!"))
-        .catch(e => alert("Error: " + e.message));
+        if (user) {
+          database.ref('users/' + user.uid + '/custom_explanations/' + qKey).set(text)
+          .catch(e => console.warn("Firebase backup save failed (already safe locally):", e.message));
+        }
       }
-      
-      q.customExplanation = text;
+
+      alert("व्याख्या सुरक्षित हो गई!");
       
       // Live dynamic layout up-gradation
       const eBox = document.getElementById("explanationBox");
@@ -815,29 +818,29 @@
 
       const qKey = getSafeQuestionKey(q.question);
       if(!q.customExplanation) {
-  if(isGuest) {
-    let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
-    if(localExps[qKey]) q.customExplanation = localExps[qKey];
-  } else {
-    const user = auth.currentUser;
-    if(user) {
-      database.ref('users/' + user.uid + '/custom_explanations/' + qKey).once('value').then(snap => {
-        // 👇 ye guard add karo
-        if(snap.exists() && !q.customExplanation) {
-          q.customExplanation = snap.val();
-          if(document.getElementById("explanationBox") && document.getElementById("explanationBox").style.display === "block") {
-            document.getElementById("explanationBox").innerHTML = `
-              <div class="explanation-header-row">
-                <span class="explanation-title">💡 व्याख्या</span>
-                <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
-              </div>
-              <div>${q.customExplanation}</div>`;
+        // Always check localStorage cache FIRST (instant, works even if Firebase write hadn't landed)
+        let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
+        if(localExps[qKey]) {
+          q.customExplanation = localExps[qKey];
+        } else if(!isGuest) {
+          const user = auth.currentUser;
+          if(user) {
+            database.ref('users/' + user.uid + '/custom_explanations/' + qKey).once('value').then(snap => {
+              if(snap.exists() && !q.customExplanation) {
+                q.customExplanation = snap.val();
+                if(document.getElementById("explanationBox") && document.getElementById("explanationBox").style.display === "block") {
+                  document.getElementById("explanationBox").innerHTML = `
+                    <div class="explanation-header-row">
+                      <span class="explanation-title">💡 व्याख्या</span>
+                      <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
+                    </div>
+                    <div>${q.customExplanation}</div>`;
+                }
+              }
+            });
           }
         }
-      });
-    }
-  }
-}
+      }
 
       document.getElementById("progressBar").style.width = (currentIdx / selectedQuestions.length) * 100 + "%";
       document.getElementById("qCount").innerText = `सवाल: ${currentIdx + 1} / ${selectedQuestions.length}`;
@@ -880,7 +883,7 @@
                 <span class="explanation-title">💡 व्याख्या</span>
                 <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Add ✎</button>
               </div>
-              <div style="color: #888; font-style: italic; font-size: 14px;">इस सवाल की कोई व्याख्या नहीं है। नोट्स जोड़ने के लिए Edit पर क्लिक करें।</div>
+              <div style="color: #888; font-style: italic; font-size: 14px;">इस सवाल की कोई व्याख्या नहीं है। नोट्स जोड़ने के लिए Edit पर क्लिक करें।</div>
             `;
             eBox.style.display = "block";
           }
@@ -977,7 +980,7 @@
     function startSavedPractice() { clearSession(); isWeakMode = false; selectedQuestions = [...savedList].sort(() => Math.random() - 0.5); initQuizUI(); }
     function startWeakAreasQuiz() { clearSession(); isWeakMode = true; selectedQuestions = [...weakList].sort(() => Math.random() - 0.5); initQuizUI(); }
     function retryWrong() { selectedQuestions = [...wrongQuestions]; initQuizUI(); }
-    function quitQuiz() { if(confirm("क्विज़ छोड़ें?")) showFinalResult(); }
+    function quitQuiz() { if(confirm("क्विज़ छोड़ें?")) showFinalResult(); }
   </script>
 </body>
 </html>
