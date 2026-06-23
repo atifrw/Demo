@@ -815,28 +815,29 @@
 
       const qKey = getSafeQuestionKey(q.question);
       if(!q.customExplanation) {
-        if(isGuest) {
-          let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
-          if(localExps[qKey]) q.customExplanation = localExps[qKey];
-        } else {
-          const user = auth.currentUser;
-          if(user) {
-            database.ref('users/' + user.uid + '/custom_explanations/' + qKey).once('value').then(snap => {
-              if(snap.exists()) {
-                q.customExplanation = snap.val();
-                if(document.getElementById("explanationBox") && document.getElementById("explanationBox").style.display === "block") {
-                  document.getElementById("explanationBox").innerHTML = `
-                    <div class="explanation-header-row">
-                      <span class="explanation-title">💡 व्याख्या</span>
-                      <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
-                    </div>
-                    <div>${q.customExplanation}</div>`;
-                }
-              }
-            });
+  if(isGuest) {
+    let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
+    if(localExps[qKey]) q.customExplanation = localExps[qKey];
+  } else {
+    const user = auth.currentUser;
+    if(user) {
+      database.ref('users/' + user.uid + '/custom_explanations/' + qKey).once('value').then(snap => {
+        // 👇 ye guard add karo
+        if(snap.exists() && !q.customExplanation) {
+          q.customExplanation = snap.val();
+          if(document.getElementById("explanationBox") && document.getElementById("explanationBox").style.display === "block") {
+            document.getElementById("explanationBox").innerHTML = `
+              <div class="explanation-header-row">
+                <span class="explanation-title">💡 व्याख्या</span>
+                <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
+              </div>
+              <div>${q.customExplanation}</div>`;
           }
         }
-      }
+      });
+    }
+  }
+}
 
       document.getElementById("progressBar").style.width = (currentIdx / selectedQuestions.length) * 100 + "%";
       document.getElementById("qCount").innerText = `सवाल: ${currentIdx + 1} / ${selectedQuestions.length}`;
