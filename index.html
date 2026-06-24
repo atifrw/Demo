@@ -288,7 +288,6 @@
       
       <div id="userProfile" class="user-profile" onclick="toggleProfileMenu(event)"></div>
       <button id="quitBtn" onclick="quitQuiz()">⏹️ Quit</button>
-      <button onclick="alert(localStorage.getItem('quiz_custom_explanations'))" style="background:#16a085;color:white;border:none;padding:8px;border-radius:8px;">🔍 Debug</button>
     </div>
   </div>
 
@@ -818,28 +817,27 @@
       if(document.getElementById("inputExpArea")) document.getElementById("inputExpArea").style.display = "none";
 
       const qKey = getSafeQuestionKey(q.question);
-      if(!q.customExplanation) {
-        // Always check localStorage cache FIRST (instant, works even if Firebase write hadn't landed)
-        let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
-        if(localExps[qKey]) {
-          q.customExplanation = localExps[qKey];
-        } else if(!isGuest) {
-          const user = auth.currentUser;
-          if(user) {
-            database.ref('users/' + user.uid + '/custom_explanations/' + qKey).once('value').then(snap => {
-              if(snap.exists() && !q.customExplanation) {
-                q.customExplanation = snap.val();
-                if(document.getElementById("explanationBox") && document.getElementById("explanationBox").style.display === "block") {
-                  document.getElementById("explanationBox").innerHTML = `
-                    <div class="explanation-header-row">
-                      <span class="explanation-title">💡 व्याख्या</span>
-                      <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
-                    </div>
-                    <div>${q.customExplanation}</div>`;
-                }
+      // Always check localStorage cache FIRST and let it win — this overrides any stale
+      // customExplanation that may have been restored from an old saved quiz_session
+      let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
+      if(localExps[qKey] !== undefined) {
+        q.customExplanation = localExps[qKey];
+      } else if(!q.customExplanation && !isGuest) {
+        const user = auth.currentUser;
+        if(user) {
+          database.ref('users/' + user.uid + '/custom_explanations/' + qKey).once('value').then(snap => {
+            if(snap.exists() && !q.customExplanation) {
+              q.customExplanation = snap.val();
+              if(document.getElementById("explanationBox") && document.getElementById("explanationBox").style.display === "block") {
+                document.getElementById("explanationBox").innerHTML = `
+                  <div class="explanation-header-row">
+                    <span class="explanation-title">💡 व्याख्या</span>
+                    <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
+                  </div>
+                  <div>${q.customExplanation}</div>`;
               }
-            });
-          }
+            }
+          });
         }
       }
 
