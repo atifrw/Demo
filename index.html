@@ -131,6 +131,22 @@
     #nextBtn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); }
 
     /* --- REFACTORED PREMIUM EXPLANATION STYLES --- */
+    .explanation-box mark {
+      background: linear-gradient(120deg, #fff3a0 0%, #fff3a0 100%);
+      background-repeat: no-repeat;
+      background-size: 100% 60%;
+      background-position: 0 70%;
+      padding: 0 2px;
+      border-radius: 2px;
+      color: inherit;
+      font-weight: 600;
+    }
+    [data-theme="dark"] .explanation-box mark {
+      background: linear-gradient(120deg, #5b4b00 0%, #5b4b00 100%);
+      background-repeat: no-repeat;
+      background-size: 100% 60%;
+      background-position: 0 70%;
+    }
     .explanation-box { 
       display: none; 
       background: var(--exp-bg); 
@@ -859,6 +875,13 @@
       for(let s in quizData) for(let c in quizData[s]) if(quizData[s][c].some(item => item.question === q.question)) { q.sub = s; q.ch = c; return; }
     }
 
+    // **word** ko highlighter (<mark>) me convert karta hai, taaki explanation me
+    // important words automatic highlight ho jaayein bina manual HTML likhe
+    function formatExplanation(text) {
+      if(!text) return "";
+      return text.replace(/\*\*(.+?)\*\*/g, '<mark>$1</mark>');
+    }
+
     function getSafeQuestionKey(qText) {
       return btoa(unescape(encodeURIComponent(qText))).replace(/[/=+]/g, '_');
     }
@@ -895,7 +918,7 @@
           <span class="explanation-title">✨ व्याख्या (Live Updated)</span>
           <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
         </div>
-        <div>${text}</div>
+        <div>${formatExplanation(text)}</div>
       `;
       eBox.style.display = "block";
       document.getElementById("inputExpArea").style.display = "none";
@@ -925,7 +948,7 @@
                     <span class="explanation-title">💡 व्याख्या</span>
                     <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
                   </div>
-                  <div>${q.customExplanation}</div>`;
+                  <div>${formatExplanation(q.customExplanation)}</div>`;
               }
             }
           });
@@ -963,7 +986,7 @@
                 <span class="explanation-title">💡 व्याख्या</span>
                 <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
               </div>
-              <div>${finalExp}</div>
+              <div>${formatExplanation(finalExp)}</div>
             `; 
             eBox.style.display = "block"; 
           } else {
