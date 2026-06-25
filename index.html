@@ -131,21 +131,23 @@
     #nextBtn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); }
 
     /* --- REFACTORED PREMIUM EXPLANATION STYLES --- */
-    .explanation-box mark {
+    .explanation-box .exp-highlight {
       background: linear-gradient(120deg, #fff3a0 0%, #fff3a0 100%);
       background-repeat: no-repeat;
-      background-size: 100% 60%;
-      background-position: 0 70%;
-      padding: 0 2px;
-      border-radius: 2px;
-      color: inherit;
-      font-weight: 600;
+      background-size: 100% 65%;
+      background-position: 0 75%;
+      padding: 2px 4px;
+      border-radius: 3px;
+      color: #2c2c2c;
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
     }
-    [data-theme="dark"] .explanation-box mark {
+    [data-theme="dark"] .explanation-box .exp-highlight {
       background: linear-gradient(120deg, #5b4b00 0%, #5b4b00 100%);
       background-repeat: no-repeat;
-      background-size: 100% 60%;
-      background-position: 0 70%;
+      background-size: 100% 65%;
+      background-position: 0 75%;
+      color: #f3f4f6;
     }
     .explanation-box { 
       display: none; 
@@ -875,11 +877,11 @@
       for(let s in quizData) for(let c in quizData[s]) if(quizData[s][c].some(item => item.question === q.question)) { q.sub = s; q.ch = c; return; }
     }
 
-    // **word** ko highlighter (<mark>) me convert karta hai, taaki explanation me
-    // important words automatic highlight ho jaayein bina manual HTML likhe
+    // Pura explanation text automatically highlighter-style dikhane ke liye —
+    // kuch manually type karne ki zarurat nahi, jo bhi likho wo apne aap highlight ho jayega
     function formatExplanation(text) {
       if(!text) return "";
-      return text.replace(/\*\*(.+?)\*\*/g, '<mark>$1</mark>');
+      return '<span class="exp-highlight">' + text + '</span>';
     }
 
     function getSafeQuestionKey(qText) {
