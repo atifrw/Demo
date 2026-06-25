@@ -364,13 +364,18 @@
           <h3 style="text-align:center;">📅 रिवीजन स्टेटस</h3>
           <div id="trackerContent"></div>
         </div>
-        <div id="collectionArea" class="collection-card">
-          <h3 style="text-align:center;">❤️ Collection Practice</h3>
-          <select id="collSubFilter" onchange="updateCollChapters()"><option value="all">-- विषय चुनें --</option></select>
-          <select id="collChFilter"><option value="all">-- अध्याय चुनें --</option></select>
-          <button class="main-btn" onclick="startCollectionPractice()" style="background: #27ae60; color: white; margin-top: 10px;">🚀 Practice Start</button>
-        </div>
     </div>
+
+    <div id="collectionArea" style="display:none;">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:18px;">
+        <button onclick="goToHome()" style="background: var(--btn-bg); color: var(--text-color); border: 1px solid var(--border-color); width:40px; height:40px; border-radius:10px; font-size:18px; cursor:pointer; flex-shrink:0;">←</button>
+        <h2 style="margin:0; text-align:left;">❤️ Collection Practice</h2>
+      </div>
+      <select id="collSubFilter" onchange="renderCollChapterCheckboxes()"><option value="all">-- सभी विषय --</option></select>
+      <div id="collChapterCheckboxContainer" style="margin-bottom: 12px; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--btn-bg); max-height: 220px; overflow-y: auto; display: none; text-align: left;"></div>
+      <button class="main-btn" onclick="startCollectionPractice()" style="background: #27ae60; color: white; margin-top: 10px;">🚀 Practice Start</button>
+    </div>
+
     <div id="quizArea" style="display:none;"></div>
   </div>
 
@@ -1034,35 +1039,73 @@
 
     function toggleCollection() {
       const area = document.getElementById("collectionArea");
-      const wasOpen = area.style.display === "block";
-      area.style.display = wasOpen ? "none" : "block";
-      if(!wasOpen) {
+      const setup = document.getElementById("setupArea");
+      const opening = area.style.display !== "block";
+      if (opening) {
+        setup.style.display = "none";
+        area.style.display = "block";
         fillCollFilters();
         history.pushState({page: "collection"}, "Collection");
-        // Smoothly bring the panel into view instead of leaving it hidden below the fold
-        setTimeout(() => area.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+      } else {
+        area.style.display = "none";
+        setup.style.display = "block";
       }
     }
 
     function fillCollFilters() {
       const sFilter = document.getElementById("collSubFilter");
-      sFilter.innerHTML = "<option value='all'>-- All Saved Subjects --</option>";
+      sFilter.innerHTML = "<option value='all'>-- सभी विषय --</option>";
       Object.keys(collections).forEach(s => sFilter.add(new Option(s, s)));
-      updateCollChapters();
+      renderCollChapterCheckboxes();
     }
 
-    function updateCollChapters() {
-      const s = document.getElementById("collSubFilter").value, cFilter = document.getElementById("collChFilter");
-      cFilter.innerHTML = "<option value='all'>-- All Chapters --</option>";
-      if(s !== "all" && collections[s]) Object.keys(collections[s]).forEach(c => cFilter.add(new Option(c, c)));
+    function renderCollChapterCheckboxes() {
+      const s = document.getElementById("collSubFilter").value;
+      const container = document.getElementById("collChapterCheckboxContainer");
+      container.innerHTML = "";
+
+      if (s === "all" || !collections[s]) {
+        container.style.display = "none";
+        return;
+      }
+
+      container.style.display = "block";
+      container.innerHTML += `
+        <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px; font-weight: 600;">
+          <input type="checkbox" id="selectAllCollChapters" onchange="toggleAllCollChapters(this)" style="width: 18px; height: 18px; cursor: pointer;">
+          <label for="selectAllCollChapters" style="cursor:pointer; color: var(--primary-color); font-size: 15px;">-- सभी अध्याय (Select All) --</label>
+        </div>
+        <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 8px 0;">
+      `;
+
+      Object.keys(collections[s]).forEach((chapter, idx) => {
+        container.innerHTML += `
+          <div style="margin: 8px 0; display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%;">
+            <input type="checkbox" class="coll-chapter-checkbox" value="${chapter}" id="collch_${idx}" style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0;">
+            <label for="collch_${idx}" style="cursor:pointer; font-size: 15px; width: auto; text-align: left; display: inline-block;">${chapter}</label>
+          </div>
+        `;
+      });
+    }
+
+    function toggleAllCollChapters(master) {
+      document.querySelectorAll(".coll-chapter-checkbox").forEach(cb => cb.checked = master.checked);
     }
 
     function startCollectionPractice() {
-      const sub = document.getElementById("collSubFilter").value, ch = document.getElementById("collChFilter").value;
+      const sub = document.getElementById("collSubFilter").value;
       let ids = [];
-      if(sub === "all") Object.keys(collections).forEach(s => Object.keys(collections[s]).forEach(c => ids = ids.concat(collections[s][c])));
-      else if(ch === "all") Object.keys(collections[sub]).forEach(c => ids = ids.concat(collections[sub][c]));
-      else ids = collections[sub][ch];
+
+      if (sub === "all") {
+        Object.keys(collections).forEach(s => Object.keys(collections[s]).forEach(c => ids = ids.concat(collections[s][c])));
+      } else {
+        const checkedBoxes = document.querySelectorAll(".coll-chapter-checkbox:checked");
+        if (checkedBoxes.length === 0) {
+          Object.keys(collections[sub]).forEach(c => ids = ids.concat(collections[sub][c]));
+        } else {
+          checkedBoxes.forEach(cb => ids = ids.concat(collections[sub][cb.value]));
+        }
+      }
 
       // IDs se hamesha FRESH (current quizData se) question resolve karo, purana cached object kabhi nahi
       let qs = resolveQuestionsByIds(ids);
@@ -1135,7 +1178,7 @@
       forgotPassword, continueAsGuest, clearGuestAndLogin, toggleTheme, updateChapters,
       toggleAllChapters, toggleTracker, toggleEditExplanation, startQuiz, resumeQuiz,
       exportData, importData, saveVoiceSpeed, readFullQuestion, saveCustomExplanation,
-      handleHeartClick, toggleCollection, updateCollChapters, startCollectionPractice,
+      handleHeartClick, toggleCollection, renderCollChapterCheckboxes, toggleAllCollChapters, startCollectionPractice,
       nextQuestionTrigger, goToHome, handleBookmarkClick, startSavedPractice,
       startWeakAreasQuiz, retryWrong, quitQuiz
     });
