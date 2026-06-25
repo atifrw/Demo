@@ -131,24 +131,6 @@
     #nextBtn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3); }
 
     /* --- REFACTORED PREMIUM EXPLANATION STYLES --- */
-    .explanation-box .exp-highlight {
-      background: linear-gradient(120deg, #fff3a0 0%, #fff3a0 100%);
-      background-repeat: no-repeat;
-      background-size: 100% 65%;
-      background-position: 0 75%;
-      padding: 2px 4px;
-      border-radius: 3px;
-      color: #2c2c2c;
-      box-decoration-break: clone;
-      -webkit-box-decoration-break: clone;
-    }
-    [data-theme="dark"] .explanation-box .exp-highlight {
-      background: linear-gradient(120deg, #5b4b00 0%, #5b4b00 100%);
-      background-repeat: no-repeat;
-      background-size: 100% 65%;
-      background-position: 0 75%;
-      color: #f3f4f6;
-    }
     .explanation-box { 
       display: none; 
       background: var(--exp-bg); 
@@ -156,8 +138,8 @@
       padding: 18px; 
       margin-top: 20px; 
       border-radius: 14px; 
-      font-size: 17px; 
-  line-height: 1.75;
+      font-size: 16px; 
+      line-height: 1.6; 
       color: var(--text-color); 
       box-shadow: 0 4px 15px rgba(0,0,0,0.03);
       position: relative;
@@ -877,13 +859,6 @@
       for(let s in quizData) for(let c in quizData[s]) if(quizData[s][c].some(item => item.question === q.question)) { q.sub = s; q.ch = c; return; }
     }
 
-    // Pura explanation text automatically highlighter-style dikhane ke liye —
-    // kuch manually type karne ki zarurat nahi, jo bhi likho wo apne aap highlight ho jayega
-    function formatExplanation(text) {
-      if(!text) return "";
-      return '<span class="exp-highlight">' + text + '</span>';
-    }
-
     function getSafeQuestionKey(qText) {
       return btoa(unescape(encodeURIComponent(qText))).replace(/[/=+]/g, '_');
     }
@@ -920,7 +895,7 @@
           <span class="explanation-title">✨ व्याख्या (Live Updated)</span>
           <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
         </div>
-        <div>${formatExplanation(text)}</div>
+        <div>${text}</div>
       `;
       eBox.style.display = "block";
       document.getElementById("inputExpArea").style.display = "none";
@@ -950,7 +925,7 @@
                     <span class="explanation-title">💡 व्याख्या</span>
                     <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
                   </div>
-                  <div>${formatExplanation(q.customExplanation)}</div>`;
+                  <div>${q.customExplanation}</div>`;
               }
             }
           });
@@ -988,7 +963,7 @@
                 <span class="explanation-title">💡 व्याख्या</span>
                 <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
               </div>
-              <div>${formatExplanation(finalExp)}</div>
+              <div>${finalExp}</div>
             `; 
             eBox.style.display = "block"; 
           } else {
