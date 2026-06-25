@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>📖 Quiz 3 - Premium Edition</title>
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
-  
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 
   <style>
     :root {
@@ -23,7 +23,18 @@
       --primary-color: #818cf8; --exp-bg: #1f2937; --exp-border: #60a5fa;
     }
     body { font-family: 'Rubik', sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 15px; transition: 0.3s; }
-    
+
+    /* --- LOADING SCREEN (shown by default, hides as soon as auth state is known) --- */
+    #loadingScreen {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: var(--bg-color); display: flex; align-items: center; justify-content: center;
+      z-index: 10001;
+    }
+    #loadingScreen .loading-icon {
+      font-size: 50px; animation: pulseLoad 1.1s ease-in-out infinite;
+    }
+    @keyframes pulseLoad { 0%,100% { opacity: 0.4; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } }
+
     /* --- MODERN LOGIN INTERFACE --- */
     #loginArea { 
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -241,7 +252,13 @@
 </head>
 <body>
 
-  <div id="loginArea">
+  <!-- Neutral loading screen: shown first, hidden the instant auth state is known.
+       This prevents the "login page flashes before main page" issue. -->
+  <div id="loadingScreen">
+    <div class="loading-icon">📖</div>
+  </div>
+
+  <div id="loginArea" style="display:none;">
     <div class="login-glass-card">
         <span class="login-brand-icon">📖</span>
         <h1>Quiz 3 Pro</h1>
@@ -358,6 +375,12 @@
   </div>
 
   <script>
+    // Everything is wrapped to run only after the DOM is parsed AND after the
+    // deferred Firebase scripts above have executed. This keeps HTML parsing
+    // fast (scripts no longer block rendering) while guaranteeing `firebase`
+    // is defined before we touch it.
+    document.addEventListener("DOMContentLoaded", function () {
+
     const firebaseConfig = {
       apiKey: "AIzaSyA_Wm4oRPvdHJ_9NVHrGGWaom5Y3lu6MBE",
       authDomain: "mystudyquiz-ac0d9.firebaseapp.com",
@@ -389,6 +412,11 @@
     };
 
     auth.onAuthStateChanged((user) => {
+        // Auth state is now known — hide the neutral loading screen and reveal
+        // whichever screen is actually correct (no more login-then-main flash).
+        const loader = document.getElementById("loadingScreen");
+        if (loader) loader.style.display = "none";
+
         const up = document.getElementById("userProfile");
         const guestStored = localStorage.getItem("quiz_guest_mode");
 
@@ -543,7 +571,12 @@
 
     function initApp() { 
       checkSavedBtn(); updateWeakBtn(); checkResumeStatus(); updateCollectionBtn();
-      fetch("Demo.json?v=" + Math.random()).then(r => r.json()).then(j => {
+      // "no-cache" makes the browser always ask the server "has this file
+      // changed?" (a tiny check, not a full re-download). If unchanged, the
+      // server replies 304 and the browser reuses its local copy (fast).
+      // If you've actually edited Demo.json, the new content is fetched
+      // automatically — no manual version numbers needed, ever.
+      fetch("Demo.json", { cache: "no-cache" }).then(r => r.json()).then(j => {
         quizData = j;
         allQuestionsFlat = [];
 
@@ -1088,6 +1121,20 @@
     }
     function retryWrong() { selectedQuestions = [...wrongQuestions]; initQuizUI(); }
     function quitQuiz() { if(confirm("क्विज़ छोड़ें?")) showFinalResult(); }
+
+    // Expose functions used via inline onclick="" attributes to the global scope,
+    // since they're declared inside this DOMContentLoaded wrapper.
+    Object.assign(window, {
+      toggleProfileMenu, logoutUser, changeDisplayName, loginWithGoogle, loginWithEmail,
+      forgotPassword, continueAsGuest, clearGuestAndLogin, toggleTheme, updateChapters,
+      toggleAllChapters, toggleTracker, toggleEditExplanation, startQuiz, resumeQuiz,
+      exportData, importData, saveVoiceSpeed, readFullQuestion, saveCustomExplanation,
+      handleHeartClick, toggleCollection, updateCollChapters, startCollectionPractice,
+      nextQuestionTrigger, goToHome, handleBookmarkClick, startSavedPractice,
+      startWeakAreasQuiz, retryWrong, quitQuiz
+    });
+
+    }); // end DOMContentLoaded
   </script>
 </body>
 </html>
