@@ -236,7 +236,7 @@
     
     .backup-area { display: flex; gap: 10px; margin-top: 15px; border-top: 1px dashed var(--border-color); padding-top: 15px; }
     .backup-btn { flex: 1; padding: 10px; font-size: 12px; cursor: pointer; border-radius: 8px; border: 1px solid var(--border-color); background: var(--btn-bg); color: var(--text-color); font-weight: bold; }
-    .tracker-card, .collection-card { display: none; margin-top: 10px; border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; background: var(--card-bg); }
+    .tracker-card, .collection-card { display: none; margin-top: 10px; border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; background: var(--card-bg); animation: fadeIn 0.35s ease-out; }
     .subject-group { margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden; }
     .subject-title { background: var(--primary-color); color: white; padding: 10px; font-weight: bold; }
     .chapter-row { display: flex; justify-content: space-between; padding: 10px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); align-items: center; }
@@ -772,10 +772,13 @@
     
     function toggleTracker() {
       const area = document.getElementById("trackerArea");
-      area.style.display = (area.style.display === "block") ? "none" : "block";
-      if(area.style.display === "block") {
+      const wasOpen = area.style.display === "block";
+      area.style.display = wasOpen ? "none" : "block";
+      if(!wasOpen) {
         renderTracker();
         history.pushState({page: "tracker"}, "Tracker");
+        // Smoothly bring the panel into view instead of leaving it hidden below the fold
+        setTimeout(() => area.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
       }
     }
 
@@ -1031,10 +1034,13 @@
 
     function toggleCollection() {
       const area = document.getElementById("collectionArea");
-      area.style.display = (area.style.display === "block") ? "none" : "block";
-      if(area.style.display === "block") {
+      const wasOpen = area.style.display === "block";
+      area.style.display = wasOpen ? "none" : "block";
+      if(!wasOpen) {
         fillCollFilters();
         history.pushState({page: "collection"}, "Collection");
+        // Smoothly bring the panel into view instead of leaving it hidden below the fold
+        setTimeout(() => area.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
       }
     }
 
