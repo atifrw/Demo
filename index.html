@@ -373,8 +373,10 @@
     const auth = firebase.auth();
     const database = firebase.database();
 
-    let quizData = {}, selectedQuestions = [], wrongQuestions = [], currentIdx = 0, score = 0, timerInterval;
+    let quizData = {}, allQuestionsFlat = [], selectedQuestions = [], wrongQuestions = [], currentIdx = 0, score = 0, timerInterval;
     let questionsAttempted = 0, currentSub = "", currentCh = "", isWeakMode = false;
+    // NOTE: savedList & weakList now store ONLY id strings (not full objects).
+    // collections[sub][ch] also stores an array of id strings now.
     let savedList = [], revisionDates = {}, weakList = [], collections = {};
     let isGuest = false;
 
@@ -543,10 +545,86 @@
       checkSavedBtn(); updateWeakBtn(); checkResumeStatus(); updateCollectionBtn();
       fetch("Demo.json?v=" + Math.random()).then(r => r.json()).then(j => {
         quizData = j;
+        allQuestionsFlat = [];
+
+        // --- AUTO ID GENERATION ---
+        // Har question ko subject+chapter+index ke basis par ek stable unique id de do.
+        // Isse JSON me question text/explanation/answer fix karne se purana save/bookmark/collection kabhi galat nahi hoga,
+        // kyunki ab hum text ki jagah ID se match karte hain.
+        Object.keys(quizData).forEach(sub => {
+          Object.keys(quizData[sub]).forEach(ch => {
+            quizData[sub][ch].forEach((q, idx) => {
+              q.id = `${sub}__${ch}__${idx}`;
+              q.sub = sub; q.ch = ch;
+              allQuestionsFlat.push(q);
+            });
+          });
+        });
+
+        // --- ONE-TIME MIGRATION ---
+        // Purana data (jab savedList/weakList/collections me FULL question object ya question-text
+        // store hota tha) ko naye ID-based format me convert karo, taaki purana bookmark/collection toot na jaye.
+        migrateOldDataToIds();
+
         const s = document.getElementById("subjectSelect");
         s.innerHTML = "<option value='all'>-- सभी विषय --</option>";
         Object.keys(j).forEach(k => s.add(new Option(k, k)));
+
+        checkSavedBtn(); updateWeakBtn(); updateCollectionBtn();
       });
+    }
+
+    // Helper: text se matching fresh question dhundo (sirf migration ke liye use hota hai)
+    function findFreshByText(qText) {
+      return allQuestionsFlat.find(q => q.question === qText);
+    }
+
+    function migrateOldDataToIds() {
+      let changed = false;
+
+      // savedList migration
+      savedList = savedList.map(item => {
+        if (typeof item === "string") return item; // already an id
+        if (item && item.question) {
+          const fresh = findFreshByText(item.question);
+          changed = true;
+          return fresh ? fresh.id : null;
+        }
+        return null;
+      }).filter(Boolean);
+
+      // weakList migration
+      weakList = weakList.map(item => {
+        if (typeof item === "string") return item;
+        if (item && item.question) {
+          const fresh = findFreshByText(item.question);
+          changed = true;
+          return fresh ? fresh.id : null;
+        }
+        return null;
+      }).filter(Boolean);
+
+      // collections migration: collections[sub][ch] = [ids]
+      Object.keys(collections).forEach(sub => {
+        Object.keys(collections[sub]).forEach(ch => {
+          collections[sub][ch] = collections[sub][ch].map(item => {
+            if (typeof item === "string") return item;
+            if (item && item.question) {
+              const fresh = findFreshByText(item.question);
+              changed = true;
+              return fresh ? fresh.id : null;
+            }
+            return null;
+          }).filter(Boolean);
+        });
+      });
+
+      if (changed) syncToFirebase();
+    }
+
+    // Helper: id se fresh (current) question object resolve karo
+    function resolveQuestionsByIds(ids) {
+      return ids.map(id => allQuestionsFlat.find(q => q.id === id)).filter(Boolean);
     }
 
     function checkResumeStatus() {
@@ -559,8 +637,10 @@
     }
 
     function saveCurrentSession() {
+      // Session me sirf question IDs store karo (full object nahi), taaki resume karte waqt bhi fresh data mile
+      const idList = selectedQuestions.map(q => q.id);
       localStorage.setItem("quiz_session", JSON.stringify({
-        selectedQuestions, currentIdx, score, questionsAttempted, currentSub, currentCh, isWeakMode
+        idList, currentIdx, score, questionsAttempted, currentSub, currentCh, isWeakMode
       }));
     }
 
@@ -572,11 +652,18 @@
     function resumeQuiz() {
       const session = JSON.parse(localStorage.getItem("quiz_session"));
       if (session) {
-        selectedQuestions = session.selectedQuestions;
+        // Purane sessions me idList na ho (bahut purana format) to safe-guard
+        if (session.idList) {
+          selectedQuestions = resolveQuestionsByIds(session.idList);
+        } else if (session.selectedQuestions) {
+          // fallback for very old session format
+          selectedQuestions = session.selectedQuestions.map(q => findFreshByText(q.question) || q);
+        }
         currentIdx = session.currentIdx; score = session.score;
         questionsAttempted = session.questionsAttempted;
         currentSub = session.currentSub; currentCh = session.currentCh;
         isWeakMode = session.isWeakMode;
+        if (selectedQuestions.length === 0) { clearSession(); return; }
         initQuizUI_Display(); renderLayout(); showQuestion();
       }
     }
@@ -601,6 +688,7 @@
           revisionDates = data.revision || {};
           weakList = data.weak || [];
           collections = data.collections || {};
+          migrateOldDataToIds(); // agar backup purane format ka hai to usko bhi migrate karo
           syncToFirebase();
           location.reload();
         } catch (err) { alert("गलत फाइल!"); }
@@ -766,6 +854,8 @@
     }
 
     function findQuestionMeta(q) {
+      // ab quizData load hote waqt hi q.sub/q.ch set ho jate hain, ye function ab safety fallback ke liye hai
+      if(q.sub && q.ch) return;
       for(let s in quizData) for(let c in quizData[s]) if(quizData[s][c].some(item => item.question === q.question)) { q.sub = s; q.ch = c; return; }
     }
 
@@ -846,8 +936,8 @@
       document.getElementById("qCount").innerText = `सवाल: ${currentIdx + 1} / ${selectedQuestions.length}`;
       document.getElementById("questionBox").innerHTML = `${q.question} <button class="speak-btn" onclick="readFullQuestion()">🔊</button>`;
       if(document.getElementById("autoReadSwitch").checked) setTimeout(readFullQuestion, 500);
-      document.getElementById("bookmarkActionBtn").classList.toggle("active", savedList.some(item => item.question === q.question));
-      let isHearted = (q.sub && q.ch && collections[q.sub] && collections[q.sub][q.ch]) ? collections[q.sub][q.ch].some(item => item.question === q.question) : false;
+      document.getElementById("bookmarkActionBtn").classList.toggle("active", savedList.includes(q.id));
+      let isHearted = (q.sub && q.ch && collections[q.sub] && collections[q.sub][q.ch]) ? collections[q.sub][q.ch].includes(q.id) : false;
       document.getElementById("heartActionBtn").classList.toggle("active", isHearted);
       const oBox = document.getElementById("optionsBox"), rBox = document.getElementById("resultBox"), nBtn = document.getElementById("nextBtn"), eBox = document.getElementById("explanationBox");
       oBox.innerHTML = ""; rBox.innerText = ""; nBtn.style.display = "none"; eBox.style.display = "none"; 
@@ -859,11 +949,11 @@
           document.querySelectorAll(".option-btn").forEach(btn => btn.style.pointerEvents = "none");
           if(opt === q.answer) { 
             score++; rBox.innerHTML = "<span style='color:#10b981'>✅ सही जवाब!</span>"; 
-            if(isWeakMode) { weakList = weakList.filter(i => i.question !== q.question); syncToFirebase(); }
+            if(isWeakMode) { weakList = weakList.filter(id => id !== q.id); syncToFirebase(); }
           } else { 
             rBox.innerHTML = `<span style='color:#e74c3c'>❌ गलत जवाब! सही उत्तर: ${q.answer}</span>`; 
             wrongQuestions.push(q); 
-            if(!weakList.some(i => i.question === q.question)) { weakList.push(q); syncToFirebase(); }
+            if(!weakList.includes(q.id)) { weakList.push(q.id); syncToFirebase(); }
           }
           
           const finalExp = q.customExplanation || q.explanation;
@@ -901,8 +991,8 @@
       if(!q.sub || !q.ch) return;
       if(!collections[q.sub]) collections[q.sub] = {};
       if(!collections[q.sub][q.ch]) collections[q.sub][q.ch] = [];
-      const idx = collections[q.sub][q.ch].findIndex(i => i.question === q.question);
-      idx > -1 ? collections[q.sub][q.ch].splice(idx, 1) : collections[q.sub][q.ch].push(q);
+      const idx = collections[q.sub][q.ch].indexOf(q.id);
+      idx > -1 ? collections[q.sub][q.ch].splice(idx, 1) : collections[q.sub][q.ch].push(q.id);
       syncToFirebase(); document.getElementById("heartActionBtn").classList.toggle("active"); updateCollectionBtn();
     }
 
@@ -930,10 +1020,13 @@
 
     function startCollectionPractice() {
       const sub = document.getElementById("collSubFilter").value, ch = document.getElementById("collChFilter").value;
-      let qs = [];
-      if(sub === "all") Object.keys(collections).forEach(s => Object.keys(collections[s]).forEach(c => qs = qs.concat(collections[s][c])));
-      else if(ch === "all") Object.keys(collections[sub]).forEach(c => qs = qs.concat(collections[sub][c]));
-      else qs = collections[sub][ch];
+      let ids = [];
+      if(sub === "all") Object.keys(collections).forEach(s => Object.keys(collections[s]).forEach(c => ids = ids.concat(collections[s][c])));
+      else if(ch === "all") Object.keys(collections[sub]).forEach(c => ids = ids.concat(collections[sub][c]));
+      else ids = collections[sub][ch];
+
+      // IDs se hamesha FRESH (current quizData se) question resolve karo, purana cached object kabhi nahi
+      let qs = resolveQuestionsByIds(ids);
       if(qs.length === 0) return alert("कोई सवाल नहीं मिला!");
       clearSession(); isWeakMode = false; selectedQuestions = [...qs].sort(() => Math.random() - 0.5); initQuizUI();
     }
@@ -974,11 +1067,25 @@
     }
     
     function startTimer(m) { let t = m * 60; document.getElementById("timerDisplay").style.display = "block"; timerInterval = setInterval(() => { let mins = Math.floor(t/60), secs = t%60; document.getElementById("timerDisplay").innerText = `⏳ ${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`; if (--t < 0) { clearInterval(timerInterval); showFinalResult(); } }, 1000); }
-    function handleBookmarkClick() { const q = selectedQuestions[currentIdx], idx = savedList.findIndex(i => i.question === q.question); idx > -1 ? savedList.splice(idx, 1) : savedList.push(q); syncToFirebase(); checkSavedBtn(); document.getElementById("bookmarkActionBtn").classList.toggle("active"); }
+    function handleBookmarkClick() { 
+      const q = selectedQuestions[currentIdx], idx = savedList.indexOf(q.id); 
+      idx > -1 ? savedList.splice(idx, 1) : savedList.push(q.id); 
+      syncToFirebase(); checkSavedBtn(); document.getElementById("bookmarkActionBtn").classList.toggle("active"); 
+    }
     function checkSavedBtn() { document.getElementById("savedPracticeBtn").style.display = savedList.length > 0 ? "flex" : "none"; }
     function updateWeakBtn() { document.getElementById("weakAreasBtn").style.display = (weakList.length > 0) ? "flex" : "none"; if(document.getElementById("weakCount")) document.getElementById("weakCount").innerText = weakList.length; }
-    function startSavedPractice() { clearSession(); isWeakMode = false; selectedQuestions = [...savedList].sort(() => Math.random() - 0.5); initQuizUI(); }
-    function startWeakAreasQuiz() { clearSession(); isWeakMode = true; selectedQuestions = [...weakList].sort(() => Math.random() - 0.5); initQuizUI(); }
+    function startSavedPractice() { 
+      clearSession(); isWeakMode = false; 
+      selectedQuestions = resolveQuestionsByIds(savedList).sort(() => Math.random() - 0.5); 
+      if(selectedQuestions.length === 0) return alert("कोई सवाल नहीं मिला!");
+      initQuizUI(); 
+    }
+    function startWeakAreasQuiz() { 
+      clearSession(); isWeakMode = true; 
+      selectedQuestions = resolveQuestionsByIds(weakList).sort(() => Math.random() - 0.5); 
+      if(selectedQuestions.length === 0) return alert("कोई सवाल नहीं मिला!");
+      initQuizUI(); 
+    }
     function retryWrong() { selectedQuestions = [...wrongQuestions]; initQuizUI(); }
     function quitQuiz() { if(confirm("क्विज़ छोड़ें?")) showFinalResult(); }
   </script>
