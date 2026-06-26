@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📖 Quiz 3 - Premium Edition</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+  <style>
+    /* ============ DESIGN TOKENS ============
+       Theme: "Scholar's Desk" — warm paper + deep ink + a single gold accent,
+       like a well-kept exam notebook rather than a generic SaaS dashboard.
+    */
+    :root {
+      --bg-color: #F7F2E7;
+      --card-bg: #FFFEFB;
+      --text-color: #221F1A;
+      --text-soft: #6B6358;
+      --question-bg: #FFFEFB;
+      --border-color: #E4DCC8;
+      --btn-bg: #F1EADA;
+      --primary-color: #2E2A6B;
+      --primary-soft: #45408f;
+      --gold: #C9974C;
+      --gold-soft: #e7c98a;
+      --progress-color: #2E2A6B;
+      --exp-bg: #FBF7EC;
+      --exp-border: #C9974C;
+      --danger: #B5453B;
+      --success: #1F7A5C;
+      --font-display: 'Fraunces', serif;
+      --font-body: 'Rubik', sans-serif;
+      --radius: 16px;
+    }
+    [data-theme="dark"] {
+      --bg-color: #15131A;
+      --card-bg: #1E1B24;
+      --text-color: #EFEAE0;
+      --text-soft: #A6A095;
+      --question-bg: #211E28;
+      --border-color: #332E3B;
+      --btn-bg: #29242F;
+      --primary-color: #9892E8;
+      --primary-soft: #7d76d6;
+      --gold: #E0B568;
+      --gold-soft: #f2d29c;
+      --progress-color: #9892E8;
+      --exp-bg: #221E2A;
+      --exp-border: #E0B568;
+      --danger: #E07A6E;
+      --success: #4FBF94;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      font-family: var(--font-body);
+      background-color: var(--bg-color);
+      background-image:
+        radial-gradient(circle at 15% 10%, rgba(201,151,76,0.07), transparent 40%),
+        radial-gradient(circle at 90% 85%, rgba(46,42,107,0.06), transparent 45%);
+      color: var(--text-color);
+      margin: 0;
+      padding: 18px;
+      transition: background-color 0.3s, color 0.3s;
+      letter-spacing: 0.1px;
+    }
+
+    /* --- LOADING SCREEN --- */
+    #loadingScreen {
+      position: fixed; inset: 0;
+      background: var(--bg-color);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 10001; gap: 14px;
+    }
+    #loadingScreen .loading-icon {
+      font-size: 42px;
+      width: 78px; height: 78px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 2px solid var(--gold);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      animation: pulseLoad 1.3s ease-in-out infinite;
+    }
+    @keyframes pulseLoad { 0%,100% { opacity: 0.55; transform: scale(0.96); } 50% { opacity: 1; transform: scale(1.04); } }
+
+    /* --- LOGIN INTERFACE --- */
+    #loginArea {
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(201,151,76,0.12), transparent 45%),
+        linear-gradient(160deg, #F7F2E7 0%, #ECE2C8 100%);
+      display: flex; align-items: center; justify-content: center; z-index: 9999;
+      padding: 20px;
+    }
+    [data-theme="dark"] #loginArea {
+      background:
+        radial-gradient(circle at 20% 20%, rgba(224,181,104,0.08), transparent 45%),
+        linear-gradient(160deg, #15131A 0%, #0F0D12 100%);
+    }
+
+    .login-glass-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      padding: 36px 30px;
+      border-radius: 24px;
+      text-align: center;
+      box-shadow: 0 25px 60px rgba(34,31,26,0.12);
+      max-width: 400px; width: 100%;
+      animation: fadeIn 0.7s ease-out;
+      position: relative;
+    }
+    .login-glass-card::before {
+      content: "";
+      position: absolute; top: -1px; left: 12%; right: 12%; height: 3px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      border-radius: 3px;
+    }
+
+    .login-brand-icon {
+      font-size: 30px; width: 64px; height: 64px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 14px; border-radius: 50%;
+      background: var(--primary-color); color: #fff;
+      border: 3px solid var(--gold);
+      box-shadow: 0 8px 20px rgba(46,42,107,0.25);
+    }
+    .login-glass-card h1 {
+      margin: 0; font-family: var(--font-display);
+      font-size: 28px; color: var(--text-color); font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    .login-glass-card .tagline {
+      margin: 6px 0 22px; font-size: 13px; color: var(--text-soft);
+    }
+
+    .input-group { margin-bottom: 14px; text-align: left; }
+    .input-group label { display: block; font-size: 11px; margin-bottom: 5px; font-weight: 600; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; }
+    .login-input {
+      width: 100%; padding: 13px 14px; border-radius: 12px;
+      border: 1px solid var(--border-color); background: var(--btn-bg);
+      color: var(--text-color); font-family: inherit; box-sizing: border-box;
+      font-size: 15px; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .login-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(46,42,107,0.12); }
+
+    .modern-google-btn {
+      background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color);
+      padding: 13px 24px; border-radius: 12px; font-size: 14px; font-weight: 500; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+      transition: all 0.25s; box-shadow: 0 3px 8px rgba(0,0,0,0.04); margin-top: 16px;
+    }
+    .modern-google-btn:hover { border-color: var(--gold); transform: translateY(-1px); }
+    .modern-google-btn svg { width: 18px; height: 18px; }
+
+    .email-login-btn {
+      background: var(--primary-color); color: #fff; border: none; padding: 13px;
+      border-radius: 12px; width: 100%; font-weight: 600; cursor: pointer; margin-top: 8px;
+      transition: 0.25s; font-size: 15px; letter-spacing: 0.2px;
+      box-shadow: 0 8px 18px rgba(46,42,107,0.22);
+    }
+    .email-login-btn:hover { background: var(--primary-soft); transform: translateY(-1px); }
+
+    .guest-btn {
+      background: transparent; color: var(--text-soft); border: 1px dashed var(--border-color);
+      padding: 12px 24px; border-radius: 12px; width: 100%; margin-top: 14px; cursor: pointer;
+      font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: center;
+      gap: 8px; transition: all 0.25s;
+    }
+    .guest-btn:hover { background: var(--btn-bg); color: var(--text-color); }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* --- PROFILE MENU --- */
+    .user-profile { position: relative; display: none; align-items: center; cursor: pointer; }
+    .user-profile img { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--gold); }
+
+    .profile-dropdown {
+      position: absolute; top: 46px; right: 0; background: var(--card-bg);
+      border: 1px solid var(--border-color); border-radius: 14px; min-width: 170px;
+      box-shadow: 0 14px 30px rgba(0,0,0,0.14); display: none; flex-direction: column;
+      z-index: 10000; overflow: hidden;
+    }
+    .profile-dropdown button { padding: 12px 15px; border: none; background: transparent; color: var(--text-color); text-align: left; cursor: pointer; font-size: 14px; transition: 0.2s; }
+    .profile-dropdown button:hover { background: var(--btn-bg); }
+    .profile-dropdown .user-info-header { padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 13px; color: var(--primary-color); font-family: var(--font-display); }
+
+    .container {
+      max-width: 700px; margin: auto; background: var(--card-bg);
+      padding: 26px; border-radius: 22px; box-shadow: 0 10px 35px rgba(34,31,26,0.07);
+      position: relative; border: 1px solid var(--border-color);
+    }
+    .progress-container { width: 100%; background: var(--border-color); height: 7px; border-radius: 5px; margin-bottom: 16px; display: none; overflow: hidden; }
+    #progressBar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary-color), var(--gold)); border-radius: 5px; transition: 0.4s; }
+
+    .header-btns { display: none; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 8px; flex-wrap: nowrap; }
+    .header-left { display: flex; align-items: center; gap: 8px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+
+    #themeBtn, #quitBtn, #bookmarkActionBtn, #heartActionBtn {
+      padding: 9px 13px; font-size: 13px; background: var(--primary-color); color: white;
+      border: none; cursor: pointer; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      transition: 0.2s;
+    }
+    #themeBtn:hover { background: var(--primary-soft); }
+    #quitBtn { background: var(--danger); display: none; }
+    #bookmarkActionBtn, #heartActionBtn { background: transparent; font-size: 20px; padding: 0; display: none; }
+    #bookmarkActionBtn svg, #heartActionBtn svg { width: 26px; height: 26px; fill: none; stroke: var(--text-soft); stroke-width: 2; transition: 0.2s; }
+    #bookmarkActionBtn.active svg { fill: var(--gold); stroke: var(--gold); }
+    #heartActionBtn.active svg { fill: var(--danger); stroke: var(--danger); }
+
+    .voice-switch { position: relative; display: inline-block; width: 34px; height: 18px; }
+    .voice-switch input { opacity: 0; width: 0; height: 0; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border-color); transition: .4s; border-radius: 34px; }
+    .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+    input:checked + .slider { background-color: var(--primary-color); }
+    input:checked + .slider:before { transform: translateX(16px); }
+    #timerDisplay { font-weight: 700; font-size: 17px; color: var(--danger); display: none; text-align: center; flex-grow: 1; font-family: var(--font-display); }
+
+    h2 { text-align: center; margin-top: 0; color: var(--text-color); font-family: var(--font-display); font-weight: 600; font-size: 26px; }
+    h2::after { content: ""; display: block; width: 46px; height: 3px; background: var(--gold); margin: 10px auto 0; border-radius: 3px; }
+
+    select, input, .main-btn {
+      padding: 13px; font-size: 15px; margin-bottom: 12px; width: 100%; border-radius: 12px;
+      border: 1px solid var(--border-color); background-color: var(--btn-bg); color: var(--text-color);
+      box-sizing: border-box; font-family: var(--font-body);
+    }
+    select:focus, input:focus { outline: none; border-color: var(--gold); }
+
+    .main-btn { cursor: pointer; font-weight: 600; transition: 0.2s; }
+    .main-btn:hover { transform: translateY(-1px); filter: brightness(1.03); }
+
+    /* --- GRID BUTTON STYLES --- */
+    .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+    .grid-card {
+      display: flex; align-items: center; padding: 18px 16px; min-height: 98px;
+      border-radius: var(--radius); border: 1px solid var(--border-color); cursor: pointer;
+      text-align: left; transition: 0.25s ease; box-shadow: 0 3px 10px rgba(0,0,0,0.03);
+      background: var(--card-bg); position: relative; overflow: hidden;
+    }
+    .grid-card::before {
+      content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    }
+    .grid-card:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(0,0,0,0.08); }
+
+    .orange-card::before { background: #C9974C; } .orange-card { color: #8B5E1F; }
+    .blue-card::before   { background: #3B4DA3; } .blue-card   { color: #2E2A6B; }
+    .red-card::before    { background: #B5453B; } .red-card    { color: #8C3128; }
+    .yellow-card::before { background: #1F7A5C; } .yellow-card { color: #185F49; }
+    [data-theme="dark"] .grid-card { color: var(--text-color); }
+    [data-theme="dark"] .orange-card::before { background: var(--gold); }
+
+    .card-icon { font-size: 32px; margin-right: 15px; }
+    .card-content { display: flex; flex-direction: column; }
+    .card-title { font-weight: 700; font-size: 16px; font-family: var(--font-display); }
+    .card-sub { font-size: 11.5px; opacity: 0.75; margin-top: 4px; line-height: 1.35; color: var(--text-soft); }
+
+    .challenge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; background: var(--btn-bg); padding: 14px; border-radius: 14px; border: 1px solid var(--border-color); }
+    .challenge-grid label { font-size: 12px; font-weight: 700; margin-bottom: 5px; display: block; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.4px; }
+
+    .question-card {
+      background: var(--question-bg);
+      border: 1px solid var(--border-color);
+      border-left: 5px solid var(--primary-color);
+      padding: 22px 20px; border-radius: 16px; margin-bottom: 18px;
+      font-size: 22px; font-weight: 500; line-height: 1.55; position: relative;
+      box-shadow: 0 3px 14px rgba(0,0,0,0.025);
+      font-family: var(--font-display);
+    }
+    .speak-btn { position: absolute; right: 12px; top: 12px; background: var(--btn-bg); border: none; border-radius: 8px; cursor: pointer; font-size: 17px; padding: 5px 8px; opacity: 0.75; }
+
+    .option-btn {
+      display: block; background: var(--card-bg); border: 1.5px solid var(--border-color);
+      color: var(--text-color); padding: 15px; margin: 10px 0; border-radius: 12px; cursor: pointer;
+      width: 100%; text-align: left; font-size: 17px; font-weight: 500; transition: 0.18s;
+    }
+    .option-btn:hover { border-color: var(--gold); background: var(--btn-bg); transform: translateX(2px); }
+
+    #nextBtn {
+      display: none; background: var(--success) !important; color: white !important; border: none;
+      text-align: center; margin-top: 16px; width: 100%; padding: 14px; border-radius: 12px;
+      font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 6px 16px rgba(31,122,92,0.22);
+      transition: 0.2s;
+    }
+    #nextBtn:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(31,122,92,0.3); }
+
+    /* --- EXPLANATION STYLES --- */
+    .explanation-box {
+      display: none; background: var(--exp-bg); border-left: 4px solid var(--exp-border);
+      padding: 18px; margin-top: 20px; border-radius: 14px; font-size: 16px; line-height: 1.7;
+      color: var(--text-color); box-shadow: 0 4px 15px rgba(0,0,0,0.03); position: relative;
+      white-space: pre-line;
+    }
+    .explanation-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px dashed var(--border-color); padding-bottom: 7px; }
+    .explanation-title { font-weight: 700; color: var(--exp-border); display: flex; align-items: center; gap: 6px; font-family: var(--font-display); font-size: 15px; }
+    .edit-exp-toggle-btn { background: none; border: none; color: var(--primary-color); font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 9px; border-radius: 8px; transition: 0.2s; }
+    .edit-exp-toggle-btn:hover { background: var(--btn-bg); }
+
+    .explanation-input-area {
+      display: none; margin-top: 15px; padding: 16px; background: var(--card-bg);
+      border: 1px solid var(--border-color); border-radius: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      animation: fadeIn 0.3s ease-out;
+    }
+    .explanation-input-area textarea {
+      width: 100%; height: 84px; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);
+      background: var(--btn-bg); color: var(--text-color); resize: vertical; box-sizing: border-box;
+      font-family: inherit; font-size: 14px; transition: 0.3s;
+    }
+    .explanation-input-area textarea:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 0 3px rgba(201,151,76,0.15); }
+    .save-exp-btn {
+      background: var(--primary-color); color: white; border: none; padding: 11px 18px; border-radius: 10px;
+      cursor: pointer; margin-top: 10px; font-size: 14px; font-weight: 600; transition: 0.2s;
+      box-shadow: 0 6px 14px rgba(46,42,107,0.22);
+    }
+    .save-exp-btn:hover { transform: translateY(-1px); background: var(--primary-soft); }
+
+    .backup-area { display: flex; gap: 10px; margin-top: 16px; border-top: 1px dashed var(--border-color); padding-top: 16px; }
+    .backup-btn { flex: 1; padding: 11px; font-size: 12px; cursor: pointer; border-radius: 10px; border: 1px solid var(--border-color); background: var(--btn-bg); color: var(--text-soft); font-weight: 700; transition: 0.2s; }
+    .backup-btn:hover { color: var(--text-color); border-color: var(--gold); }
+
+    .tracker-card, .collection-card { display: none; margin-top: 12px; border: 1px solid var(--border-color); padding: 16px; border-radius: 16px; background: var(--card-bg); animation: fadeIn 0.35s ease-out; }
+    .tracker-card h3, .collection-card h3 { font-family: var(--font-display); font-weight: 600; }
+    .subject-group { margin-bottom: 14px; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; }
+    .subject-title { background: var(--primary-color); color: white; padding: 11px; font-weight: 600; font-family: var(--font-display); }
+    .chapter-row { display: flex; justify-content: space-between; padding: 11px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); align-items: center; font-size: 14px; }
+    .status-badge { width: 11px; height: 11px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+    .status-green { background: var(--success); } .status-yellow { background: var(--gold); } .status-red { background: var(--danger); }
+
+    .resumeBtn-style { background: linear-gradient(135deg, var(--primary-color), var(--primary-soft)) !important; color: white !important; }
+
+    @media (max-width: 500px) {
+      .button-grid { grid-template-columns: 1fr; }
+      .question-card { font-size: 19px; padding: 18px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Neutral loading screen: shown first, hidden the instant auth state is known.
+       This prevents the "login page flashes before main page" issue. -->
+  <div id="loadingScreen">
+    <div class="loading-icon">📖</div>
+  </div>
+
+  <div id="loginArea" style="display:none;">
+    <div class="login-glass-card">
+        <span class="login-brand-icon">📖</span>
+        <h1>Quiz 3 Pro</h1>
+        <p class="tagline">अपनी तैयारी, अपने अंदाज़ में</p>
+        <div style="margin-top:6px;">
+          <div class="input-group">
+            <label>ईमेल</label>
+            <input type="email" id="emailInput" class="login-input" placeholder="Gmail ID">
+          </div>
+          <div class="input-group">
+            <label>पासवर्ड</label>
+            <input type="password" id="passwordInput" class="login-input" placeholder="Apna Password">
+          </div>
+          <button class="email-login-btn" onclick="loginWithEmail()">Login / Sign Up</button>
+          <p style="margin-top:10px; font-size:12px;">
+            <a href="javascript:void(0)" onclick="forgotPassword()" style="color: var(--primary-color); text-decoration:none; font-weight:600;">Forgot Password?</a>
+          </p>
+        </div>
+        <div style="margin: 16px 0; color: var(--text-soft); font-size: 12px; display:flex; align-items:center; gap:10px;">
+          <span style="flex:1; height:1px; background:var(--border-color);"></span>OR<span style="flex:1; height:1px; background:var(--border-color);"></span>
+        </div>
+        <button class="modern-google-btn" onclick="loginWithGoogle()">
+            <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z"></path><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path></svg>
+            Continue with Google
+        </button>
+        <button class="guest-btn" onclick="continueAsGuest()">
+            <span style="font-size: 16px;">👤</span> Bina login ke chalayein (Guest)
+        </button>
+    </div>
+  </div>
+
+  <div class="header-btns" id="mainHeader">
+    <div class="header-left">
+      <button id="themeBtn" onclick="toggleTheme()">🌙</button>
+      <div style="display:flex; align-items:center; gap:5px;">
+        <span style="font-size:12px;">🔊</span>
+        <label class="voice-switch">
+          <input type="checkbox" id="autoReadSwitch">
+          <span class="slider"></span>
+        </label>
+        <input type="range" id="voiceSpeed" min="0.5" max="1.5" step="0.1" value="1" style="width:50px;" onchange="saveVoiceSpeed(this.value)">
+      </div>
+    </div>
+
+    <div id="timerDisplay">⏳ 00:00</div>
+
+    <div class="header-right">
+      <button id="heartActionBtn" title="Subject-wise Collection" onclick="handleHeartClick()"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg></button>
+      <button id="bookmarkActionBtn" onclick="handleBookmarkClick()"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></button>
+
+      <div id="userProfile" class="user-profile" onclick="toggleProfileMenu(event)"></div>
+      <button id="quitBtn" onclick="quitQuiz()">⏹️ Quit</button>
+    </div>
+  </div>
+
+  <div class="container" id="mainContainer" style="display:none;">
+    <div class="progress-container" id="pCont"><div id="progressBar"></div></div>
+    <div id="setupArea">
+        <h2>🔥 Smart Quiz Pro</h2>
+        <button id="resumeBtn" class="main-btn resumeBtn-style" style="display: none;" onclick="resumeQuiz()">🕒 पिछला क्विज़ जारी रखें</button>
+        <select id="subjectSelect" onchange="updateChapters()"><option value="all">-- सभी विषय --</option></select>
+
+        <div id="chapterCheckboxContainer" style="margin-bottom: 12px; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--btn-bg); max-height: 180px; overflow-y: auto; display: none; text-align: left;"></div>
+
+        <div class="challenge-grid">
+          <div><label>सवाल:</label><input type="number" id="customLimit" placeholder="10"></div>
+          <div><label>मिनट:</label><input type="number" id="customTime" placeholder="5"></div>
+        </div>
+        <button class="main-btn" onclick="startQuiz()" style="background: var(--primary-color); color: white;">🚀 Start Quiz</button>
+
+        <div class="button-grid">
+            <button id="weakAreasBtn" class="grid-card orange-card" style="display:none;" onclick="startWeakAreasQuiz()">
+                <div class="card-icon">🎯</div>
+                <div class="card-content">
+                    <div class="card-title">Weak Areas (<span id="weakCount">0</span>)</div>
+                    <div class="card-sub">Focus on your weak areas & improve them.</div>
+                </div>
+            </button>
+            <button id="collectionMainBtn" class="grid-card blue-card" style="display:none;" onclick="toggleCollection()">
+                <div class="card-icon">📚</div>
+                <div class="card-content">
+                    <div class="card-title">My Collections</div>
+                    <div class="card-sub">Organize & review questions by subject.</div>
+                </div>
+            </button>
+            <button class="grid-card red-card" onclick="toggleTracker()">
+                <div class="card-icon">📊</div>
+                <div class="card-content">
+                    <div class="card-title">Revision Tracker</div>
+                    <div class="card-sub">Monitor your scores and track progress.</div>
+                </div>
+            </button>
+            <button id="savedPracticeBtn" class="grid-card yellow-card" style="display:none;" onclick="startSavedPractice()">
+                <div class="card-icon">⭐</div>
+                <div class="card-content">
+                    <div class="card-title">Save Question</div>
+                    <div class="card-sub">Practice your bookmarked questions.</div>
+                </div>
+            </button>
+        </div>
+
+        <div class="backup-area">
+          <button class="backup-btn" onclick="exportData()">📤 Backup Data</button>
+          <button class="backup-btn" onclick="document.getElementById('importFile').click()">📥 Restore Data</button>
+          <input type="file" id="importFile" style="display:none" onchange="importData(event)">
+        </div>
+        <div id="trackerArea" class="tracker-card">
+          <h3 style="text-align:center;">📅 रिवीजन स्टेटस</h3>
+          <div id="trackerContent"></div>
+        </div>
+        <div id="collectionArea" class="collection-card">
+          <h3 style="text-align:center;">❤️ Collection Practice</h3>
+          <select id="collSubFilter" onchange="updateCollChapters()"><option value="all">-- विषय चुनें --</option></select>
+          <select id="collChFilter"><option value="all">-- अध्याय चुनें --</option></select>
+          <button class="main-btn" onclick="startCollectionPractice()" style="background: var(--success); color: white; margin-top: 10px;">🚀 Practice Start</button>
+        </div>
+    </div>
+    <div id="quizArea" style="display:none;"></div>
+  </div>
+
+  <script>
+    // Everything is wrapped to run only after the DOM is parsed AND after the
+    // deferred Firebase scripts above have executed. This keeps HTML parsing
+    // fast (scripts no longer block rendering) while guaranteeing `firebase`
+    // is defined before we touch it.
+    document.addEventListener("DOMContentLoaded", function () {
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyA_Wm4oRPvdHJ_9NVHrGGWaom5Y3lu6MBE",
+      authDomain: "mystudyquiz-ac0d9.firebaseapp.com",
+      databaseURL: "https://mystudyquiz-ac0d9-default-rtdb.firebaseio.com",
+      projectId: "mystudyquiz-ac0d9",
+      storageBucket: "mystudyquiz-ac0d9.firebasestorage.app",
+      messagingSenderId: "258779460797",
+      appId: "1:258779460797:web:2201be41a252ce0e53331b",
+      measurementId: "G-CLXDSVMG0"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(e => console.warn("Persistence set failed:", e.message));
+
+    let quizData = {}, allQuestionsFlat = [], selectedQuestions = [], wrongQuestions = [], currentIdx = 0, score = 0, timerInterval;
+    let questionsAttempted = 0, currentSub = "", currentCh = "", isWeakMode = false;
+    // NOTE: savedList & weakList now store ONLY id strings (not full objects).
+    // collections[sub][ch] also stores an array of id strings now.
+    let savedList = [], revisionDates = {}, weakList = [], collections = {};
+    let isGuest = false;
+
+    window.onpopstate = function(event) {
+      if (document.getElementById("quizArea").style.display === "block" ||
+          document.getElementById("trackerArea").style.display === "block" ||
+          document.getElementById("collectionArea").style.display === "block") {
+        goToHome();
+      }
+    };
+
+    auth.onAuthStateChanged((user) => {
+        // Auth state is now known — hide the neutral loading screen and reveal
+        // whichever screen is actually correct (no more login-then-main flash).
+        const loader = document.getElementById("loadingScreen");
+        if (loader) loader.style.display = "none";
+
+        const up = document.getElementById("userProfile");
+        const guestStored = localStorage.getItem("quiz_guest_mode");
+
+        if (user) {
+            isGuest = false;
+            localStorage.removeItem("quiz_guest_mode");
+            document.getElementById("loginArea").style.display = "none";
+            document.getElementById("mainContainer").style.display = "block";
+            document.getElementById("mainHeader").style.display = "flex";
+
+            const photo = user.photoURL || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+            const name = user.displayName || user.email.split('@')[0];
+
+            up.innerHTML = `
+                <img src="${photo}" alt="User">
+                <div id="profileDropdown" class="profile-dropdown">
+                    <div class="user-info-header">Hi, ${name.split(' ')[0]}</div>
+                    <button onclick="changeDisplayName()">✏️ Name Change</button>
+                    <button onclick="logoutUser()" style="color:var(--danger); border-top:1px solid var(--border-color);">🚪 Logout</button>
+                </div>`;
+            up.style.display = "flex";
+            syncFromFirebase(user.uid);
+        } else if(guestStored === "true") {
+            continueAsGuest();
+        } else {
+            document.getElementById("loginArea").style.display = "flex";
+            document.getElementById("mainContainer").style.display = "none";
+            document.getElementById("mainHeader").style.display = "none";
+        }
+    });
+
+    function toggleProfileMenu(e) {
+        e.stopPropagation();
+        const menu = document.getElementById("profileDropdown");
+        if(menu) menu.style.display = (menu.style.display === "flex") ? "none" : "flex";
+    }
+
+    window.onclick = function(event) {
+        const menu = document.getElementById("profileDropdown");
+        if (menu && !event.target.closest('#userProfile')) {
+            menu.style.display = "none";
+        }
+    }
+
+    function logoutUser() {
+        if(confirm("Logout karein?")) {
+            localStorage.removeItem("quiz_guest_mode");
+            auth.signOut().then(() => location.reload());
+        }
+    }
+
+    function changeDisplayName() {
+        const newName = prompt("Naya Display Name likhein:");
+        if (newName && auth.currentUser) {
+            auth.currentUser.updateProfile({ displayName: newName })
+            .then(() => {
+                alert("Naam update ho gaya! Refresh kar rahe hain...");
+                location.reload();
+            }).catch(e => alert(e.message));
+        }
+    }
+
+    function loginWithGoogle() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).catch((e) => alert("Login Failed: " + e.message));
+    }
+
+    function loginWithEmail() {
+        const email = document.getElementById("emailInput").value;
+        const password = document.getElementById("passwordInput").value;
+        if(!email || !password) return alert("Email aur Password dono bhariye");
+
+        auth.signInWithEmailAndPassword(email, password)
+        .catch((error) => {
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential' || error.message.includes('INVALID_LOGIN_CREDENTIALS')) {
+                auth.createUserWithEmailAndPassword(email, password)
+                .then(() => alert("Account Created! Yehi aapka password set ho gaya hai."))
+                .catch((signUpErr) => alert("Error: " + signUpErr.message));
+            } else {
+                alert("Login Error: " + error.message);
+            }
+        });
+    }
+
+    function forgotPassword() {
+        const email = document.getElementById("emailInput").value;
+        if(!email) return alert("Pehle apni Gmail ID likhein, fir Forgot Password par click karein.");
+        auth.sendPasswordResetEmail(email)
+        .then(() => alert("Password reset link aapki Gmail par bhej diya gaya hai."))
+        .catch((error) => alert("Error: " + error.message));
+    }
+
+    function continueAsGuest() {
+        isGuest = true;
+        localStorage.setItem("quiz_guest_mode", "true");
+
+        const guestData = localStorage.getItem("quiz_guest_data");
+        if(guestData) {
+            const data = JSON.parse(guestData);
+            savedList = data.bookmarks || [];
+            revisionDates = data.revision || {};
+            weakList = data.weak || [];
+            collections = data.collections || {};
+        }
+
+        document.getElementById("loginArea").style.display = "none";
+        document.getElementById("mainContainer").style.display = "block";
+        document.getElementById("mainHeader").style.display = "flex";
+        const up = document.getElementById("userProfile");
+        up.innerHTML = `
+            <div style="font-size:24px;">👤</div>
+            <div id="profileDropdown" class="profile-dropdown">
+                <div class="user-info-header">Guest Mode</div>
+                <button onclick="clearGuestAndLogin()">✨ Sign Up / Login</button>
+            </div>`;
+        up.style.display = "flex";
+        initApp();
+    }
+
+    function clearGuestAndLogin() {
+        localStorage.removeItem("quiz_guest_mode");
+        location.reload();
+    }
+
+    function syncToFirebase() {
+        const dataToSave = {
+            bookmarks: savedList,
+            revision: revisionDates,
+            weak: weakList,
+            collections: collections
+        };
+
+        if(isGuest) {
+            localStorage.setItem("quiz_guest_data", JSON.stringify(dataToSave));
+        } else {
+            const user = auth.currentUser;
+            if (!user) return;
+            database.ref('users/' + user.uid).update(dataToSave);
+        }
+    }
+
+    function syncFromFirebase(uid) {
+        database.ref('users/' + uid).once('value').then((snapshot) => {
+            const data = snapshot.val() || {};
+            savedList = data.bookmarks || [];
+            revisionDates = data.revision || {};
+            weakList = data.weak || [];
+            collections = data.collections || {};
+            initApp();
+        });
+    }
+
+    function initApp() {
+      checkSavedBtn(); updateWeakBtn(); checkResumeStatus(); updateCollectionBtn();
+      // "no-cache" makes the browser always ask the server "has this file
+      // changed?" (a tiny check, not a full re-download). If unchanged, the
+      // server replies 304 and the browser reuses its local copy (fast).
+      // If you've actually edited Demo.json, the new content is fetched
+      // automatically — no manual version numbers needed, ever.
+      fetch("Demo.json", { cache: "no-cache" }).then(r => r.json()).then(j => {
+        quizData = j;
+        allQuestionsFlat = [];
+
+        // --- AUTO ID GENERATION ---
+        // Har question ko subject+chapter+index ke basis par ek stable unique id de do.
+        // Isse JSON me question text/explanation/answer fix karne se purana save/bookmark/collection kabhi galat nahi hoga,
+        // kyunki ab hum text ki jagah ID se match karte hain.
+        Object.keys(quizData).forEach(sub => {
+          Object.keys(quizData[sub]).forEach(ch => {
+            quizData[sub][ch].forEach((q, idx) => {
+              q.id = `${sub}__${ch}__${idx}`;
+              q.sub = sub; q.ch = ch;
+              allQuestionsFlat.push(q);
+            });
+          });
+        });
+
+        // --- ONE-TIME MIGRATION ---
+        // Purana data (jab savedList/weakList/collections me FULL question object ya question-text
+        // store hota tha) ko naye ID-based format me convert karo, taaki purana bookmark/collection toot na jaye.
+        migrateOldDataToIds();
+
+        const s = document.getElementById("subjectSelect");
+        s.innerHTML = "<option value='all'>-- सभी विषय --</option>";
+        Object.keys(j).forEach(k => s.add(new Option(k, k)));
+
+        checkSavedBtn(); updateWeakBtn(); updateCollectionBtn();
+      });
+    }
+
+    // Helper: text se matching fresh question dhundo (sirf migration ke liye use hota hai)
+    function findFreshByText(qText) {
+      return allQuestionsFlat.find(q => q.question === qText);
+    }
+
+    function migrateOldDataToIds() {
+      let changed = false;
+
+      // savedList migration
+      savedList = savedList.map(item => {
+        if (typeof item === "string") return item; // already an id
+        if (item && item.question) {
+          const fresh = findFreshByText(item.question);
+          changed = true;
+          return fresh ? fresh.id : null;
+        }
+        return null;
+      }).filter(Boolean);
+
+      // weakList migration
+      weakList = weakList.map(item => {
+        if (typeof item === "string") return item;
+        if (item && item.question) {
+          const fresh = findFreshByText(item.question);
+          changed = true;
+          return fresh ? fresh.id : null;
+        }
+        return null;
+      }).filter(Boolean);
+
+      // collections migration: collections[sub][ch] = [ids]
+      Object.keys(collections).forEach(sub => {
+        Object.keys(collections[sub]).forEach(ch => {
+          collections[sub][ch] = collections[sub][ch].map(item => {
+            if (typeof item === "string") return item;
+            if (item && item.question) {
+              const fresh = findFreshByText(item.question);
+              changed = true;
+              return fresh ? fresh.id : null;
+            }
+            return null;
+          }).filter(Boolean);
+        });
+      });
+
+      if (changed) syncToFirebase();
+    }
+
+    // Helper: id se fresh (current) question object resolve karo
+    function resolveQuestionsByIds(ids) {
+      return ids.map(id => allQuestionsFlat.find(q => q.id === id)).filter(Boolean);
+    }
+
+    function checkResumeStatus() {
+      const session = JSON.parse(localStorage.getItem("quiz_session"));
+      const btn = document.getElementById("resumeBtn");
+      if (session) {
+        btn.innerText = `🕒 पिछला क्विज़ जारी रखें (Q. ${session.currentIdx + 1})`;
+        btn.style.display = "block";
+      } else btn.style.display = "none";
+    }
+
+    function saveCurrentSession() {
+      // Session me sirf question IDs store karo (full object nahi), taaki resume karte waqt bhi fresh data mile
+      const idList = selectedQuestions.map(q => q.id);
+      localStorage.setItem("quiz_session", JSON.stringify({
+        idList, currentIdx, score, questionsAttempted, currentSub, currentCh, isWeakMode
+      }));
+    }
+
+    function clearSession() {
+      localStorage.removeItem("quiz_session");
+      document.getElementById("resumeBtn").style.display = "none";
+    }
+
+    function resumeQuiz() {
+      const session = JSON.parse(localStorage.getItem("quiz_session"));
+      if (session) {
+        // Purane sessions me idList na ho (bahut purana format) to safe-guard
+        if (session.idList) {
+          selectedQuestions = resolveQuestionsByIds(session.idList);
+        } else if (session.selectedQuestions) {
+          // fallback for very old session format
+          selectedQuestions = session.selectedQuestions.map(q => findFreshByText(q.question) || q);
+        }
+        currentIdx = session.currentIdx; score = session.score;
+        questionsAttempted = session.questionsAttempted;
+        currentSub = session.currentSub; currentCh = session.currentCh;
+        isWeakMode = session.isWeakMode;
+        if (selectedQuestions.length === 0) { clearSession(); return; }
+        initQuizUI_Display(); renderLayout(); showQuestion();
+      }
+    }
+
+    function exportData() {
+      const data = { bookmarks: savedList, revision: revisionDates, weak: weakList, collections: collections };
+      const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `quiz_backup.json`;
+      a.click();
+    }
+
+    function importData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          savedList = data.bookmarks || [];
+          revisionDates = data.revision || {};
+          weakList = data.weak || [];
+          collections = data.collections || {};
+          migrateOldDataToIds(); // agar backup purane format ka hai to usko bhi migrate karo
+          syncToFirebase();
+          location.reload();
+        } catch (err) { alert("गलत फाइल!"); }
+      };
+      reader.readAsText(file);
+    }
+
+    function toggleTheme() {
+      const b = document.body;
+      b.hasAttribute("data-theme") ? b.removeAttribute("data-theme") : b.setAttribute("data-theme", "dark");
+    }
+
+    function updateChapters() {
+      const s = document.getElementById("subjectSelect").value;
+      const container = document.getElementById("chapterCheckboxContainer");
+
+      container.innerHTML = "";
+
+      if(s === "all" || !quizData[s]) {
+        container.style.display = "none";
+        return;
+      }
+
+      container.style.display = "block";
+
+      container.innerHTML += `
+        <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px; font-weight: 600;">
+          <input type="checkbox" id="selectAllChapters" onchange="toggleAllChapters(this)" style="width: 18px; height: 18px; cursor: pointer;">
+          <label for="selectAllChapters" style="cursor:pointer; color: var(--primary-color); font-size: 15px;">-- सभी अध्याय (Select All) --</label>
+        </div>
+        <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 8px 0;">
+      `;
+
+      Object.keys(quizData[s]).forEach((chapter, idx) => {
+        container.innerHTML += `
+          <div style="margin: 8px 0; display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%;">
+            <input type="checkbox" class="chapter-checkbox" value="${chapter}" id="ch_${idx}" style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0;">
+            <label for="ch_${idx}" style="cursor:pointer; font-size: 15px; width: auto; text-align: left; display: inline-block;">${chapter}</label>
+          </div>
+        `;
+      });
+    }
+
+    function toggleAllChapters(master) {
+      const checkboxes = document.querySelectorAll(".chapter-checkbox");
+      checkboxes.forEach(cb => cb.checked = master.checked);
+    }
+
+    function toggleTracker() {
+      const area = document.getElementById("trackerArea");
+      const wasOpen = area.style.display === "block";
+      area.style.display = wasOpen ? "none" : "block";
+      if(!wasOpen) {
+        renderTracker();
+        history.pushState({page: "tracker"}, "Tracker");
+        // Smoothly bring the panel into view instead of leaving it hidden below the fold
+        setTimeout(() => area.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+      }
+    }
+
+    // TOGGLE EDIT BOX SYSTEM
+    function toggleEditExplanation() {
+      const inputArea = document.getElementById("inputExpArea");
+      if(inputArea) {
+        inputArea.style.display = (inputArea.style.display === "block") ? "none" : "block";
+      }
+    }
+
+    function renderTracker() {
+      const content = document.getElementById("trackerContent"), now = Date.now();
+      content.innerHTML = "";
+      Object.keys(quizData).forEach(subject => {
+        let subHtml = `<div class="subject-group"><div class="subject-title">${subject}</div>`;
+        Object.keys(quizData[subject]).forEach(chapter => {
+          const lastDate = revisionDates[`${subject}_${chapter}`];
+          let statusClass = "status-red", dateText = "कभी नहीं";
+          if(lastDate) {
+            const diffDays = Math.floor((now - lastDate) / (1000 * 60 * 60 * 24));
+            dateText = new Date(lastDate).toLocaleDateString();
+            if(diffDays <= 15) statusClass = "status-green";
+            else if(diffDays <= 30) statusClass = "status-yellow";
+          }
+          subHtml += `<div class="chapter-row"><div><span class="status-badge ${statusClass}"></span>${chapter}</div><span style="font-size:11px; color: var(--text-soft);">${dateText}</span></div>`;
+        });
+        content.innerHTML += subHtml + `</div>`;
+      });
+    }
+
+    function saveVoiceSpeed(val) { localStorage.setItem("quiz_voice_speed", val); }
+    function speak(text) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = parseFloat(localStorage.getItem("quiz_voice_speed")) || 1;
+      window.speechSynthesis.speak(u);
+    }
+    function readFullQuestion() {
+      const q = selectedQuestions[currentIdx];
+      speak(`${q.question}. विकल्प hain . . ${q.options.join(", , ")}`);
+    }
+
+    function startQuiz() {
+      clearSession();
+      isWeakMode = false;
+      currentSub = document.getElementById("subjectSelect").value;
+
+      let allTempQ = [];
+
+      if (currentSub === "all") {
+        Object.keys(quizData).forEach(s => Object.keys(quizData[s]).forEach(c => allTempQ = allTempQ.concat(quizData[s][c])));
+        currentCh = "all";
+      } else {
+        const checkedBoxes = document.querySelectorAll(".chapter-checkbox:checked");
+
+        if(checkedBoxes.length === 0) {
+          Object.keys(quizData[currentSub]).forEach(c => allTempQ = allTempQ.concat(quizData[currentSub][c]));
+          currentCh = "all";
+        } else {
+          let selectedChaps = [];
+          checkedBoxes.forEach(cb => {
+            selectedChaps.push(cb.value);
+            allTempQ = allTempQ.concat(quizData[currentSub][cb.value]);
+          });
+          currentCh = selectedChaps.length === Object.keys(quizData[currentSub]).length ? "all" : "custom_mix";
+        }
+      }
+
+      if(allTempQ.length === 0) return alert("सवाल नहीं मिले! कृपया चैप्टर सेलेक्ट करें।");
+
+      const limit = parseInt(document.getElementById("customLimit").value);
+      selectedQuestions = (limit > 0) ? allTempQ.sort(() => Math.random() - 0.5).slice(0, limit) : allTempQ.sort(() => Math.random() - 0.5);
+
+      const mins = parseInt(document.getElementById("customTime").value);
+      if(mins > 0) startTimer(mins);
+
+      initQuizUI();
+    }
+
+    function initQuizUI() { currentIdx = score = questionsAttempted = 0; wrongQuestions = []; initQuizUI_Display(); renderLayout(); showQuestion(); }
+
+    function initQuizUI_Display() {
+      document.getElementById("setupArea").style.display = "none";
+      document.getElementById("pCont").style.display = "block";
+      document.getElementById("quizArea").style.display = "block";
+      document.getElementById("quitBtn").style.display = "block";
+      document.getElementById("bookmarkActionBtn").style.display = "flex";
+      document.getElementById("heartActionBtn").style.display = "flex";
+
+      history.pushState({page: "quiz"}, "Quiz");
+    }
+
+    function renderLayout() {
+      document.getElementById("quizArea").innerHTML = `
+        <div id="qCount" style="text-align:right; font-size:13px; font-weight:600; margin-bottom:6px; color: var(--text-soft);"></div>
+        <div id="questionBox" class="question-card"></div>
+        <div id="optionsBox"></div>
+        <div id="resultBox" style="text-align:center; font-weight:700; margin-top:10px; font-family: var(--font-display);"></div>
+        <button id="nextBtn" onclick="nextQuestionTrigger()">➡️ अगला सवाल</button>
+
+        <div id="explanationBox" class="explanation-box"></div>
+
+        <div id="inputExpArea" class="explanation-input-area">
+          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:8px; color: var(--text-color);">📝 व्याख्या लाइव एडिट करें:</label>
+          <textarea id="customExpText" placeholder="यहाँ अपनी व्याख्या या शार्ट नोट्स टाइप करें..."></textarea>
+          <button class="save-exp-btn" onclick="saveCustomExplanation()">✔ व्याख्या सुरक्षित करें</button>
+        </div>`;
+    }
+
+    function findQuestionMeta(q) {
+      // ab quizData load hote waqt hi q.sub/q.ch set ho jate hain, ye function ab safety fallback ke liye hai
+      if(q.sub && q.ch) return;
+      for(let s in quizData) for(let c in quizData[s]) if(quizData[s][c].some(item => item.question === q.question)) { q.sub = s; q.ch = c; return; }
+    }
+
+    function getSafeQuestionKey(qText) {
+      return btoa(unescape(encodeURIComponent(qText))).replace(/[/=+]/g, '_');
+    }
+
+    function saveCustomExplanation() {
+      const q = selectedQuestions[currentIdx];
+      const text = document.getElementById("customExpText").value.trim();
+      const qKey = getSafeQuestionKey(q.question);
+
+      if(!text) return alert("कृपया पहले कुछ व्याख्या लिखें!");
+
+      // STEP 1: Save INSTANTLY & SYNCHRONOUSLY to localStorage (no network wait, never lost even if you quit immediately)
+      let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
+      localExps[qKey] = text;
+      localStorage.setItem("quiz_custom_explanations", JSON.stringify(localExps));
+
+      q.customExplanation = text; // update in-memory immediately
+
+      // STEP 2: Background best-effort backup to Firebase (for cross-device sync), doesn't block anything
+      if(!isGuest) {
+        const user = auth.currentUser;
+        if (user) {
+          database.ref('users/' + user.uid + '/custom_explanations/' + qKey).set(text)
+          .catch(e => console.warn("Firebase backup save failed (already safe locally):", e.message));
+        }
+      }
+
+      alert("व्याख्या सुरक्षित हो गई!");
+
+      // Live dynamic layout up-gradation
+      const eBox = document.getElementById("explanationBox");
+      eBox.innerHTML = `
+        <div class="explanation-header-row">
+          <span class="explanation-title">✨ व्याख्या (Live Updated)</span>
+          <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
+        </div>
+        <div>${text}</div>
+      `;
+      eBox.style.display = "block";
+      document.getElementById("inputExpArea").style.display = "none";
+    }
+
+    function showQuestion() {
+      const q = selectedQuestions[currentIdx];
+      if(!q.sub || !q.ch) findQuestionMeta(q);
+
+      if(document.getElementById("inputExpArea")) document.getElementById("inputExpArea").style.display = "none";
+
+      const qKey = getSafeQuestionKey(q.question);
+      // Always check localStorage cache FIRST and let it win — this overrides any stale
+      // customExplanation that may have been restored from an old saved quiz_session
+      let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
+      if(localExps[qKey] !== undefined) {
+        q.customExplanation = localExps[qKey];
+      } else if(!q.customExplanation && !isGuest) {
+        const user = auth.currentUser;
+        if(user) {
+          database.ref('users/' + user.uid + '/custom_explanations/' + qKey).once('value').then(snap => {
+            if(snap.exists() && !q.customExplanation) {
+              q.customExplanation = snap.val();
+              if(document.getElementById("explanationBox") && document.getElementById("explanationBox").style.display === "block") {
+                document.getElementById("explanationBox").innerHTML = `
+                  <div class="explanation-header-row">
+                    <span class="explanation-title">💡 व्याख्या</span>
+                    <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
+                  </div>
+                  <div>${q.customExplanation}</div>`;
+              }
+            }
+          });
+        }
+      }
+
+      document.getElementById("progressBar").style.width = (currentIdx / selectedQuestions.length) * 100 + "%";
+      document.getElementById("qCount").innerText = `सवाल: ${currentIdx + 1} / ${selectedQuestions.length}`;
+      document.getElementById("questionBox").innerHTML = `${q.question} <button class="speak-btn" onclick="readFullQuestion()">🔊</button>`;
+      if(document.getElementById("autoReadSwitch").checked) setTimeout(readFullQuestion, 500);
+      document.getElementById("bookmarkActionBtn").classList.toggle("active", savedList.includes(q.id));
+      let isHearted = (q.sub && q.ch && collections[q.sub] && collections[q.sub][q.ch]) ? collections[q.sub][q.ch].includes(q.id) : false;
+      document.getElementById("heartActionBtn").classList.toggle("active", isHearted);
+      const oBox = document.getElementById("optionsBox"), rBox = document.getElementById("resultBox"), nBtn = document.getElementById("nextBtn"), eBox = document.getElementById("explanationBox");
+      oBox.innerHTML = ""; rBox.innerText = ""; nBtn.style.display = "none"; eBox.style.display = "none";
+
+      q.options.forEach((opt) => {
+        const b = document.createElement("button"); b.className = "option-btn"; b.innerText = opt;
+        b.onclick = () => {
+          questionsAttempted++;
+          document.querySelectorAll(".option-btn").forEach(btn => btn.style.pointerEvents = "none");
+          if(opt === q.answer) {
+            score++; rBox.innerHTML = "<span style='color:var(--success)'>✅ सही जवाब!</span>";
+            if(isWeakMode) { weakList = weakList.filter(id => id !== q.id); syncToFirebase(); }
+          } else {
+            rBox.innerHTML = `<span style='color:var(--danger)'>❌ गलत जवाब! सही उत्तर: ${q.answer}</span>`;
+            wrongQuestions.push(q);
+            if(!weakList.includes(q.id)) { weakList.push(q.id); syncToFirebase(); }
+          }
+
+          const finalExp = q.customExplanation || q.explanation;
+          if(finalExp) {
+            eBox.innerHTML = `
+              <div class="explanation-header-row">
+                <span class="explanation-title">💡 व्याख्या</span>
+                <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
+              </div>
+              <div>${finalExp}</div>
+            `;
+            eBox.style.display = "block";
+          } else {
+            // Agar pehle se koi explanation nahi hai toh use empty text ke sath setup dein
+            eBox.innerHTML = `
+              <div class="explanation-header-row">
+                <span class="explanation-title">💡 व्याख्या</span>
+                <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Add ✎</button>
+              </div>
+              <div style="color: var(--text-soft); font-style: italic; font-size: 14px;">इस सवाल की कोई व्याख्या नहीं है। नोट्स जोड़ने के लिए Edit पर क्लिक करें।</div>
+            `;
+            eBox.style.display = "block";
+          }
+
+          document.getElementById("customExpText").value = q.customExplanation || "";
+          nBtn.style.display = "block"; saveCurrentSession();
+        };
+        oBox.appendChild(b);
+      });
+    }
+
+    function handleHeartClick() {
+      const q = selectedQuestions[currentIdx];
+      if(!q.sub || !q.ch) findQuestionMeta(q);
+      if(!q.sub || !q.ch) return;
+      if(!collections[q.sub]) collections[q.sub] = {};
+      if(!collections[q.sub][q.ch]) collections[q.sub][q.ch] = [];
+      const idx = collections[q.sub][q.ch].indexOf(q.id);
+      idx > -1 ? collections[q.sub][q.ch].splice(idx, 1) : collections[q.sub][q.ch].push(q.id);
+      syncToFirebase(); document.getElementById("heartActionBtn").classList.toggle("active"); updateCollectionBtn();
+    }
+
+    function toggleCollection() {
+      const area = document.getElementById("collectionArea");
+      const wasOpen = area.style.display === "block";
+      area.style.display = wasOpen ? "none" : "block";
+      if(!wasOpen) {
+        fillCollFilters();
+        history.pushState({page: "collection"}, "Collection");
+        // Smoothly bring the panel into view instead of leaving it hidden below the fold
+        setTimeout(() => area.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+      }
+    }
+
+    function fillCollFilters() {
+      const sFilter = document.getElementById("collSubFilter");
+      sFilter.innerHTML = "<option value='all'>-- All Saved Subjects --</option>";
+      Object.keys(collections).forEach(s => sFilter.add(new Option(s, s)));
+      updateCollChapters();
+    }
+
+    function updateCollChapters() {
+      const s = document.getElementById("collSubFilter").value, cFilter = document.getElementById("collChFilter");
+      cFilter.innerHTML = "<option value='all'>-- All Chapters --</option>";
+      if(s !== "all" && collections[s]) Object.keys(collections[s]).forEach(c => cFilter.add(new Option(c, c)));
+    }
+
+    function startCollectionPractice() {
+      const sub = document.getElementById("collSubFilter").value, ch = document.getElementById("collChFilter").value;
+      let ids = [];
+      if(sub === "all") Object.keys(collections).forEach(s => Object.keys(collections[s]).forEach(c => ids = ids.concat(collections[s][c])));
+      else if(ch === "all") Object.keys(collections[sub]).forEach(c => ids = ids.concat(collections[sub][c]));
+      else ids = collections[sub][ch];
+
+      // IDs se hamesha FRESH (current quizData se) question resolve karo, purana cached object kabhi nahi
+      let qs = resolveQuestionsByIds(ids);
+      if(qs.length === 0) return alert("कोई सवाल नहीं मिला!");
+      clearSession(); isWeakMode = false; selectedQuestions = [...qs].sort(() => Math.random() - 0.5); initQuizUI();
+    }
+
+    function updateCollectionBtn() { document.getElementById("collectionMainBtn").style.display = Object.keys(collections).length > 0 ? "flex" : "none"; }
+    function nextQuestionTrigger() { window.speechSynthesis.cancel(); currentIdx++; if(currentIdx < selectedQuestions.length) { saveCurrentSession(); showQuestion(); } else { showFinalResult(); } }
+
+    function showFinalResult() {
+      clearSession(); clearInterval(timerInterval); window.speechSynthesis.cancel();
+      document.getElementById("timerDisplay").style.display = "none";
+      document.getElementById("bookmarkActionBtn").style.display = "none";
+      document.getElementById("heartActionBtn").style.display = "none";
+      if (!isWeakMode && (questionsAttempted / selectedQuestions.length) * 100 >= 80 && currentSub !== "all" && currentCh !== "all" && currentCh !== "custom_mix") {
+        revisionDates[`${currentSub}_${currentCh}`] = Date.now(); syncToFirebase();
+      }
+      document.getElementById("quizArea").innerHTML = `<div style="text-align:center;"><h3 style="font-family: var(--font-display);">🏁 रिजल्ट: ${score}/${selectedQuestions.length}</h3>` + (wrongQuestions.length > 0 ? `<button class="main-btn" style="background:var(--gold); color:white;" onclick="retryWrong()">🔄 गलत सुधारें (${wrongQuestions.length})</button>` : "") + `<button class="main-btn" onclick="goToHome()">🏠 होम</button></div>`;
+      document.getElementById("quitBtn").style.display = "none";
+      updateWeakBtn(); updateCollectionBtn();
+    }
+
+    function goToHome() {
+      clearInterval(timerInterval);
+      window.speechSynthesis.cancel();
+      document.getElementById("quizArea").style.display = "none";
+      document.getElementById("setupArea").style.display = "block";
+      document.getElementById("pCont").style.display = "none";
+      document.getElementById("quitBtn").style.display = "none";
+
+      document.getElementById("trackerArea").style.display = "none";
+      document.getElementById("collectionArea").style.display = "none";
+
+      updateWeakBtn();
+      checkResumeStatus();
+
+      if(window.history.state) {
+        history.replaceState(null, "");
+      }
+    }
+
+    function startTimer(m) { let t = m * 60; document.getElementById("timerDisplay").style.display = "block"; timerInterval = setInterval(() => { let mins = Math.floor(t/60), secs = t%60; document.getElementById("timerDisplay").innerText = `⏳ ${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`; if (--t < 0) { clearInterval(timerInterval); showFinalResult(); } }, 1000); }
+    function handleBookmarkClick() {
+      const q = selectedQuestions[currentIdx], idx = savedList.indexOf(q.id);
+      idx > -1 ? savedList.splice(idx, 1) : savedList.push(q.id);
+      syncToFirebase(); checkSavedBtn(); document.getElementById("bookmarkActionBtn").classList.toggle("active");
+    }
+    function checkSavedBtn() { document.getElementById("savedPracticeBtn").style.display = savedList.length > 0 ? "flex" : "none"; }
+    function updateWeakBtn() { document.getElementById("weakAreasBtn").style.display = (weakList.length > 0) ? "flex" : "none"; if(document.getElementById("weakCount")) document.getElementById("weakCount").innerText = weakList.length; }
+    function startSavedPractice() {
+      clearSession(); isWeakMode = false;
+      selectedQuestions = resolveQuestionsByIds(savedList).sort(() => Math.random() - 0.5);
+      if(selectedQuestions.length === 0) return alert("कोई सवाल नहीं मिला!");
+      initQuizUI();
+    }
+    function startWeakAreasQuiz() {
+      clearSession(); isWeakMode = true;
+      selectedQuestions = resolveQuestionsByIds(weakList).sort(() => Math.random() - 0.5);
+      if(selectedQuestions.length === 0) return alert("कोई सवाल नहीं मिला!");
+      initQuizUI();
+    }
+    function retryWrong() { selectedQuestions = [...wrongQuestions]; initQuizUI(); }
+    function quitQuiz() { if(confirm("क्विज़ छोड़ें?")) showFinalResult(); }
+
+    // Expose functions used via inline onclick="" attributes to the global scope,
+    // since they're declared inside this DOMContentLoaded wrapper.
+    Object.assign(window, {
+      toggleProfileMenu, logoutUser, changeDisplayName, loginWithGoogle, loginWithEmail,
+      forgotPassword, continueAsGuest, clearGuestAndLogin, toggleTheme, updateChapters,
+      toggleAllChapters, toggleTracker, toggleEditExplanation, startQuiz, resumeQuiz,
+      exportData, importData, saveVoiceSpeed, readFullQuestion, saveCustomExplanation,
+      handleHeartClick, toggleCollection, updateCollChapters, startCollectionPractice,
+      nextQuestionTrigger, goToHome, handleBookmarkClick, startSavedPractice,
+      startWeakAreasQuiz, retryWrong, quitQuiz
+    });
+
+    }); // end DOMContentLoaded
+  </script>
+</body>
+</html>
