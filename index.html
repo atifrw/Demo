@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>📖 Quiz 3 - Premium Edition</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <script defer src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -13,360 +13,379 @@
 
   <style>
     /* ============ DESIGN TOKENS ============
-       Theme: "Scholar's Desk" — warm paper + deep ink + a single gold accent,
-       like a well-kept exam notebook rather than a generic SaaS dashboard.
+       Concept: "Exam Ledger" — the app looks like an admit card / OMR answer
+       sheet rather than a generic chat-app card UI. Signature element: bubble
+       (OMR-style) answer options with A/B/C/D markers via CSS counters.
     */
     :root {
-      --bg-color: #F7F2E7;
-      --card-bg: #FFFEFB;
-      --text-color: #221F1A;
-      --text-soft: #6B6358;
-      --question-bg: #FFFEFB;
-      --border-color: #E4DCC8;
-      --btn-bg: #F1EADA;
-      --primary-color: #2E2A6B;
-      --primary-soft: #45408f;
-      --gold: #C9974C;
-      --gold-soft: #e7c98a;
-      --progress-color: #2E2A6B;
-      --exp-bg: #FBF7EC;
-      --exp-border: #C9974C;
-      --danger: #B5453B;
-      --success: #1F7A5C;
-      --font-display: 'Fraunces', serif;
+      --bg-color: #F4F1E6;
+      --card-bg: #FFFFFF;
+      --text-color: #1C1B17;
+      --text-soft: #76705F;
+      --question-bg: #FFFFFF;
+      --border-color: #D8D2BD;
+      --btn-bg: #ECE7D6;
+      --primary-color: #1F4D3D;
+      --primary-soft: #2E6650;
+      --accent: #D44B33;
+      --accent-soft: #e8765f;
+      --stamp: #1F4D3D;
+      --progress-color: #1F4D3D;
+      --exp-bg: #FBF4D9;
+      --exp-border: #D9B23B;
+      --danger: #C8392A;
+      --success: #226B4E;
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-mono: 'IBM Plex Mono', monospace;
       --font-body: 'Rubik', sans-serif;
-      --radius: 16px;
+      --radius: 14px;
+      --bottombar-h: 64px;
     }
     [data-theme="dark"] {
-      --bg-color: #15131A;
-      --card-bg: #1E1B24;
-      --text-color: #EFEAE0;
-      --text-soft: #A6A095;
-      --question-bg: #211E28;
-      --border-color: #332E3B;
-      --btn-bg: #29242F;
-      --primary-color: #9892E8;
-      --primary-soft: #7d76d6;
-      --gold: #E0B568;
-      --gold-soft: #f2d29c;
-      --progress-color: #9892E8;
-      --exp-bg: #221E2A;
-      --exp-border: #E0B568;
-      --danger: #E07A6E;
-      --success: #4FBF94;
+      --bg-color: #12130F;
+      --card-bg: #1B1C16;
+      --text-color: #ECE8D8;
+      --text-soft: #8C8772;
+      --question-bg: #1F2018;
+      --border-color: #34352A;
+      --btn-bg: #23241B;
+      --primary-color: #4CA083;
+      --primary-soft: #66bb9c;
+      --accent: #E8765F;
+      --accent-soft: #f0987f;
+      --stamp: #4CA083;
+      --progress-color: #4CA083;
+      --exp-bg: #2A2812;
+      --exp-border: #D9B23B;
+      --danger: #E0695A;
+      --success: #5BC09B;
     }
 
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       font-family: var(--font-body);
       background-color: var(--bg-color);
       background-image:
-        radial-gradient(circle at 15% 10%, rgba(201,151,76,0.07), transparent 40%),
-        radial-gradient(circle at 90% 85%, rgba(46,42,107,0.06), transparent 45%);
+        repeating-linear-gradient(0deg, rgba(0,0,0,0.018) 0px, rgba(0,0,0,0.018) 1px, transparent 1px, transparent 26px);
       color: var(--text-color);
       margin: 0;
-      padding: 18px;
+      padding: 16px 16px calc(var(--bottombar-h) + 28px) 16px;
       transition: background-color 0.3s, color 0.3s;
-      letter-spacing: 0.1px;
+      min-height: 100vh;
     }
 
     /* --- LOADING SCREEN --- */
     #loadingScreen {
-      position: fixed; inset: 0;
-      background: var(--bg-color);
+      position: fixed; inset: 0; background: var(--bg-color);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      z-index: 10001; gap: 14px;
+      z-index: 10001; gap: 12px;
     }
     #loadingScreen .loading-icon {
-      font-size: 42px;
-      width: 78px; height: 78px;
+      font-size: 36px; width: 70px; height: 70px;
       display: flex; align-items: center; justify-content: center;
-      border-radius: 50%;
-      background: var(--card-bg);
-      border: 2px solid var(--gold);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-      animation: pulseLoad 1.3s ease-in-out infinite;
+      border: 2px dashed var(--primary-color); border-radius: 50%;
+      animation: pulseLoad 1.2s ease-in-out infinite;
     }
-    @keyframes pulseLoad { 0%,100% { opacity: 0.55; transform: scale(0.96); } 50% { opacity: 1; transform: scale(1.04); } }
+    @keyframes pulseLoad { 0%,100% { opacity: 0.5; transform: scale(0.95) rotate(-3deg); } 50% { opacity: 1; transform: scale(1.05) rotate(3deg); } }
 
-    /* --- LOGIN INTERFACE --- */
+    /* --- LOGIN: ADMIT CARD TICKET --- */
     #loginArea {
       position: fixed; inset: 0;
-      background:
-        radial-gradient(circle at 20% 20%, rgba(201,151,76,0.12), transparent 45%),
-        linear-gradient(160deg, #F7F2E7 0%, #ECE2C8 100%);
+      background: var(--bg-color);
       display: flex; align-items: center; justify-content: center; z-index: 9999;
       padding: 20px;
     }
-    [data-theme="dark"] #loginArea {
-      background:
-        radial-gradient(circle at 20% 20%, rgba(224,181,104,0.08), transparent 45%),
-        linear-gradient(160deg, #15131A 0%, #0F0D12 100%);
-    }
-
-    .login-glass-card {
+    .ticket-card {
       background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      padding: 36px 30px;
-      border-radius: 24px;
-      text-align: center;
-      box-shadow: 0 25px 60px rgba(34,31,26,0.12);
-      max-width: 400px; width: 100%;
-      animation: fadeIn 0.7s ease-out;
+      max-width: 380px; width: 100%;
+      border-radius: 18px;
+      box-shadow: 0 25px 55px rgba(0,0,0,0.16);
       position: relative;
+      animation: fadeIn 0.6s ease-out;
+      overflow: visible;
     }
-    .login-glass-card::before {
-      content: "";
-      position: absolute; top: -1px; left: 12%; right: 12%; height: 3px;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
-      border-radius: 3px;
+    .ticket-top {
+      padding: 26px 26px 18px;
+      border-bottom: 2px dashed var(--border-color);
+      position: relative;
+      text-align: center;
     }
+    /* perforation holes along the dashed cut line */
+    .ticket-top::before, .ticket-top::after {
+      content: ""; position: absolute; bottom: -10px; width: 20px; height: 20px;
+      background: var(--bg-color); border-radius: 50%;
+    }
+    .ticket-top::before { left: -10px; }
+    .ticket-top::after { right: -10px; }
+    .stamp-badge {
+      width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 12px;
+      border: 3px solid var(--stamp); color: var(--stamp);
+      display: flex; align-items: center; justify-content: center; font-size: 26px;
+      transform: rotate(-8deg);
+      font-family: var(--font-display);
+    }
+    .ticket-top h1 { margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: 0.3px; }
+    .ticket-top .ticket-id { margin-top: 4px; font-family: var(--font-mono); font-size: 11px; color: var(--text-soft); letter-spacing: 1px; text-transform: uppercase; }
+    .ticket-bottom { padding: 22px 26px 26px; }
 
-    .login-brand-icon {
-      font-size: 30px; width: 64px; height: 64px;
-      display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 14px; border-radius: 50%;
-      background: var(--primary-color); color: #fff;
-      border: 3px solid var(--gold);
-      box-shadow: 0 8px 20px rgba(46,42,107,0.25);
-    }
-    .login-glass-card h1 {
-      margin: 0; font-family: var(--font-display);
-      font-size: 28px; color: var(--text-color); font-weight: 600;
-      letter-spacing: 0.2px;
-    }
-    .login-glass-card .tagline {
-      margin: 6px 0 22px; font-size: 13px; color: var(--text-soft);
-    }
-
-    .input-group { margin-bottom: 14px; text-align: left; }
-    .input-group label { display: block; font-size: 11px; margin-bottom: 5px; font-weight: 600; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; }
+    .input-group { margin-bottom: 13px; text-align: left; }
+    .input-group label { display: block; font-size: 10.5px; margin-bottom: 5px; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.6px; font-family: var(--font-mono); }
     .login-input {
-      width: 100%; padding: 13px 14px; border-radius: 12px;
-      border: 1px solid var(--border-color); background: var(--btn-bg);
-      color: var(--text-color); font-family: inherit; box-sizing: border-box;
-      font-size: 15px; transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%; padding: 12px 13px; border-radius: 10px;
+      border: 1.5px solid var(--border-color); background: var(--btn-bg);
+      color: var(--text-color); font-family: var(--font-body); box-sizing: border-box;
+      font-size: 15px; transition: border-color 0.2s;
     }
-    .login-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(46,42,107,0.12); }
-
-    .modern-google-btn {
-      background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color);
-      padding: 13px 24px; border-radius: 12px; font-size: 14px; font-weight: 500; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
-      transition: all 0.25s; box-shadow: 0 3px 8px rgba(0,0,0,0.04); margin-top: 16px;
-    }
-    .modern-google-btn:hover { border-color: var(--gold); transform: translateY(-1px); }
-    .modern-google-btn svg { width: 18px; height: 18px; }
+    .login-input:focus { outline: none; border-color: var(--primary-color); }
 
     .email-login-btn {
       background: var(--primary-color); color: #fff; border: none; padding: 13px;
-      border-radius: 12px; width: 100%; font-weight: 600; cursor: pointer; margin-top: 8px;
-      transition: 0.25s; font-size: 15px; letter-spacing: 0.2px;
-      box-shadow: 0 8px 18px rgba(46,42,107,0.22);
+      border-radius: 10px; width: 100%; font-weight: 700; cursor: pointer; margin-top: 6px;
+      transition: 0.2s; font-size: 14.5px; letter-spacing: 0.3px; font-family: var(--font-display);
     }
-    .email-login-btn:hover { background: var(--primary-soft); transform: translateY(-1px); }
+    .email-login-btn:hover { background: var(--primary-soft); }
+
+    .modern-google-btn {
+      background: var(--card-bg); color: var(--text-color); border: 1.5px solid var(--border-color);
+      padding: 12px 22px; border-radius: 10px; font-size: 13.5px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%;
+      transition: all 0.2s; margin-top: 14px;
+    }
+    .modern-google-btn:hover { border-color: var(--accent); }
+    .modern-google-btn svg { width: 17px; height: 17px; }
 
     .guest-btn {
-      background: transparent; color: var(--text-soft); border: 1px dashed var(--border-color);
-      padding: 12px 24px; border-radius: 12px; width: 100%; margin-top: 14px; cursor: pointer;
-      font-size: 13px; font-weight: 500; display: flex; align-items: center; justify-content: center;
-      gap: 8px; transition: all 0.25s;
+      background: transparent; color: var(--text-soft); border: 1.5px dotted var(--border-color);
+      padding: 11px 22px; border-radius: 10px; width: 100%; margin-top: 12px; cursor: pointer;
+      font-size: 12.5px; font-weight: 600; display: flex; align-items: center; justify-content: center;
+      gap: 8px; transition: all 0.2s; font-family: var(--font-mono);
     }
     .guest-btn:hover { background: var(--btn-bg); color: var(--text-color); }
 
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* --- PROFILE MENU --- */
+    /* --- PROFILE MENU (lives in top brand bar now) --- */
     .user-profile { position: relative; display: none; align-items: center; cursor: pointer; }
-    .user-profile img { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--gold); }
-
+    .user-profile img { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--accent); }
     .profile-dropdown {
-      position: absolute; top: 46px; right: 0; background: var(--card-bg);
-      border: 1px solid var(--border-color); border-radius: 14px; min-width: 170px;
-      box-shadow: 0 14px 30px rgba(0,0,0,0.14); display: none; flex-direction: column;
+      position: absolute; top: 42px; right: 0; background: var(--card-bg);
+      border: 1px solid var(--border-color); border-radius: 12px; min-width: 165px;
+      box-shadow: 0 14px 30px rgba(0,0,0,0.18); display: none; flex-direction: column;
       z-index: 10000; overflow: hidden;
     }
-    .profile-dropdown button { padding: 12px 15px; border: none; background: transparent; color: var(--text-color); text-align: left; cursor: pointer; font-size: 14px; transition: 0.2s; }
+    .profile-dropdown button { padding: 11px 14px; border: none; background: transparent; color: var(--text-color); text-align: left; cursor: pointer; font-size: 13.5px; }
     .profile-dropdown button:hover { background: var(--btn-bg); }
-    .profile-dropdown .user-info-header { padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 13px; color: var(--primary-color); font-family: var(--font-display); }
+    .profile-dropdown .user-info-header { padding: 11px 14px; border-bottom: 1px solid var(--border-color); font-weight: 700; font-size: 12.5px; color: var(--primary-color); font-family: var(--font-display); }
+
+    /* --- TOP BRAND STRIP (slim, replaces old big header) --- */
+    .brand-strip {
+      max-width: 700px; margin: 0 auto 14px; display: flex; align-items: center;
+      justify-content: space-between; padding: 0 4px;
+    }
+    .brand-mark { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 700; font-size: 15px; color: var(--text-color); }
+    .brand-mark .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
 
     .container {
       max-width: 700px; margin: auto; background: var(--card-bg);
-      padding: 26px; border-radius: 22px; box-shadow: 0 10px 35px rgba(34,31,26,0.07);
+      padding: 22px; border-radius: 18px; box-shadow: 0 6px 24px rgba(0,0,0,0.06);
       position: relative; border: 1px solid var(--border-color);
     }
-    .progress-container { width: 100%; background: var(--border-color); height: 7px; border-radius: 5px; margin-bottom: 16px; display: none; overflow: hidden; }
-    #progressBar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--primary-color), var(--gold)); border-radius: 5px; transition: 0.4s; }
+    .progress-container { width: 100%; background: var(--border-color); height: 6px; border-radius: 4px; margin-bottom: 16px; display: none; overflow: hidden; }
+    #progressBar { height: 100%; width: 0%; background: var(--accent); border-radius: 4px; transition: 0.4s; }
 
-    .header-btns { display: none; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 8px; flex-wrap: nowrap; }
-    .header-left { display: flex; align-items: center; gap: 8px; }
-    .header-right { display: flex; align-items: center; gap: 12px; }
-
-    #themeBtn, #quitBtn, #bookmarkActionBtn, #heartActionBtn {
-      padding: 9px 13px; font-size: 13px; background: var(--primary-color); color: white;
-      border: none; cursor: pointer; border-radius: 10px; display: flex; align-items: center; justify-content: center;
-      transition: 0.2s;
+    /* --- FIXED BOTTOM ACTION BAR (signature layout shift) --- */
+    .header-btns {
+      display: none; justify-content: space-between; align-items: center;
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
+      background: var(--card-bg); border-top: 1px solid var(--border-color);
+      padding: 10px 18px; height: var(--bottombar-h);
+      box-shadow: 0 -8px 24px rgba(0,0,0,0.06);
     }
-    #themeBtn:hover { background: var(--primary-soft); }
-    #quitBtn { background: var(--danger); display: none; }
-    #bookmarkActionBtn, #heartActionBtn { background: transparent; font-size: 20px; padding: 0; display: none; }
-    #bookmarkActionBtn svg, #heartActionBtn svg { width: 26px; height: 26px; fill: none; stroke: var(--text-soft); stroke-width: 2; transition: 0.2s; }
-    #bookmarkActionBtn.active svg { fill: var(--gold); stroke: var(--gold); }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .header-right { display: flex; align-items: center; gap: 14px; }
+
+    #themeBtn { background: var(--btn-bg); color: var(--text-color); border: 1px solid var(--border-color); width: 36px; height: 36px; border-radius: 10px; cursor: pointer; display:flex; align-items:center; justify-content:center; }
+    #quitBtn { padding: 9px 14px; font-size: 12.5px; background: var(--danger); color: white; border: none; cursor: pointer; border-radius: 10px; display: none; font-weight: 700; font-family: var(--font-mono); }
+    #bookmarkActionBtn, #heartActionBtn { background: transparent; padding: 0; display: none; border:none; cursor:pointer; }
+    #bookmarkActionBtn svg, #heartActionBtn svg { width: 24px; height: 24px; fill: none; stroke: var(--text-soft); stroke-width: 2; transition: 0.2s; }
+    #bookmarkActionBtn.active svg { fill: var(--accent); stroke: var(--accent); }
     #heartActionBtn.active svg { fill: var(--danger); stroke: var(--danger); }
 
-    .voice-switch { position: relative; display: inline-block; width: 34px; height: 18px; }
+    .voice-switch { position: relative; display: inline-block; width: 32px; height: 17px; }
     .voice-switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border-color); transition: .4s; border-radius: 34px; }
-    .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
+    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--border-color); transition: .3s; border-radius: 30px; }
+    .slider:before { position: absolute; content: ""; height: 13px; width: 13px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; }
     input:checked + .slider { background-color: var(--primary-color); }
-    input:checked + .slider:before { transform: translateX(16px); }
-    #timerDisplay { font-weight: 700; font-size: 17px; color: var(--danger); display: none; text-align: center; flex-grow: 1; font-family: var(--font-display); }
+    input:checked + .slider:before { transform: translateX(15px); }
+    #timerDisplay {
+      font-weight: 700; font-size: 14px; color: var(--danger); display: none;
+      font-family: var(--font-mono); background: var(--btn-bg); padding: 6px 12px;
+      border-radius: 8px; position: fixed; top: 14px; right: 14px; z-index: 600;
+    }
 
-    h2 { text-align: center; margin-top: 0; color: var(--text-color); font-family: var(--font-display); font-weight: 600; font-size: 26px; }
-    h2::after { content: ""; display: block; width: 46px; height: 3px; background: var(--gold); margin: 10px auto 0; border-radius: 3px; }
+    h2 { text-align: left; margin: 0 0 4px; color: var(--text-color); font-family: var(--font-display); font-weight: 700; font-size: 23px; }
+    .h2-sub { font-size: 12px; color: var(--text-soft); margin-bottom: 18px; font-family: var(--font-mono); }
 
     select, input, .main-btn {
-      padding: 13px; font-size: 15px; margin-bottom: 12px; width: 100%; border-radius: 12px;
-      border: 1px solid var(--border-color); background-color: var(--btn-bg); color: var(--text-color);
+      padding: 12px 13px; font-size: 14.5px; margin-bottom: 12px; width: 100%; border-radius: 10px;
+      border: 1.5px solid var(--border-color); background-color: var(--btn-bg); color: var(--text-color);
       box-sizing: border-box; font-family: var(--font-body);
     }
-    select:focus, input:focus { outline: none; border-color: var(--gold); }
+    select:focus, input:focus { outline: none; border-color: var(--accent); }
+    .main-btn { cursor: pointer; font-weight: 700; transition: 0.2s; font-family: var(--font-display); }
+    .main-btn:hover { transform: translateY(-1px); filter: brightness(1.04); }
 
-    .main-btn { cursor: pointer; font-weight: 600; transition: 0.2s; }
-    .main-btn:hover { transform: translateY(-1px); filter: brightness(1.03); }
-
-    /* --- GRID BUTTON STYLES --- */
-    .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+    /* --- LEDGER LIST ROWS (replaces grid cards) --- */
+    .button-grid { display: flex; flex-direction: column; margin-top: 6px; border-top: 1px dashed var(--border-color); }
     .grid-card {
-      display: flex; align-items: center; padding: 18px 16px; min-height: 98px;
-      border-radius: var(--radius); border: 1px solid var(--border-color); cursor: pointer;
-      text-align: left; transition: 0.25s ease; box-shadow: 0 3px 10px rgba(0,0,0,0.03);
-      background: var(--card-bg); position: relative; overflow: hidden;
+      display: flex; align-items: center; gap: 14px; padding: 15px 4px;
+      border: none; border-bottom: 1px dashed var(--border-color);
+      cursor: pointer; text-align: left; background: transparent; width: 100%;
+      transition: 0.18s; border-radius: 0;
     }
-    .grid-card::before {
-      content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    .grid-card:hover { background: var(--btn-bg); padding-left: 10px; }
+    .card-icon {
+      font-size: 19px; width: 38px; height: 38px; flex-shrink: 0; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; color: #fff;
     }
-    .grid-card:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(0,0,0,0.08); }
+    .orange-card .card-icon { background: var(--accent); }
+    .blue-card .card-icon   { background: var(--primary-color); }
+    .red-card .card-icon    { background: var(--danger); }
+    .yellow-card .card-icon { background: var(--exp-border); }
+    .card-content { display: flex; flex-direction: column; flex: 1; }
+    .card-title { font-weight: 700; font-size: 14.5px; color: var(--text-color); font-family: var(--font-display); }
+    .card-sub { font-size: 11px; opacity: 0.85; margin-top: 2px; color: var(--text-soft); }
+    .grid-card::after {
+      content: "→"; color: var(--text-soft); font-size: 16px; margin-left: auto; flex-shrink: 0;
+    }
 
-    .orange-card::before { background: #C9974C; } .orange-card { color: #8B5E1F; }
-    .blue-card::before   { background: #3B4DA3; } .blue-card   { color: #2E2A6B; }
-    .red-card::before    { background: #B5453B; } .red-card    { color: #8C3128; }
-    .yellow-card::before { background: #1F7A5C; } .yellow-card { color: #185F49; }
-    [data-theme="dark"] .grid-card { color: var(--text-color); }
-    [data-theme="dark"] .orange-card::before { background: var(--gold); }
+    .challenge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; background: var(--btn-bg); padding: 13px; border-radius: 12px; border: 1px solid var(--border-color); }
+    .challenge-grid label { font-size: 10.5px; font-weight: 700; margin-bottom: 5px; display: block; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--font-mono); }
 
-    .card-icon { font-size: 32px; margin-right: 15px; }
-    .card-content { display: flex; flex-direction: column; }
-    .card-title { font-weight: 700; font-size: 16px; font-family: var(--font-display); }
-    .card-sub { font-size: 11.5px; opacity: 0.75; margin-top: 4px; line-height: 1.35; color: var(--text-soft); }
-
-    .challenge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; background: var(--btn-bg); padding: 14px; border-radius: 14px; border: 1px solid var(--border-color); }
-    .challenge-grid label { font-size: 12px; font-weight: 700; margin-bottom: 5px; display: block; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.4px; }
-
+    /* --- QUESTION CARD: exam-paper style --- */
+    #qCount { font-family: var(--font-mono); }
     .question-card {
       background: var(--question-bg);
-      border: 1px solid var(--border-color);
-      border-left: 5px solid var(--primary-color);
-      padding: 22px 20px; border-radius: 16px; margin-bottom: 18px;
-      font-size: 22px; font-weight: 500; line-height: 1.55; position: relative;
-      box-shadow: 0 3px 14px rgba(0,0,0,0.025);
-      font-family: var(--font-display);
+      border: 1.5px solid var(--border-color);
+      padding: 20px 18px 18px; border-radius: 12px; margin-bottom: 16px;
+      font-size: 19px; font-weight: 600; line-height: 1.5; position: relative;
+      font-family: var(--font-body);
     }
-    .speak-btn { position: absolute; right: 12px; top: 12px; background: var(--btn-bg); border: none; border-radius: 8px; cursor: pointer; font-size: 17px; padding: 5px 8px; opacity: 0.75; }
+    .question-card::before {
+      content: "Q"; position: absolute; top: -11px; left: 14px; background: var(--primary-color);
+      color: #fff; font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+      padding: 3px 9px; border-radius: 6px; letter-spacing: 1px;
+    }
+    .speak-btn { position: absolute; right: 10px; top: 10px; background: var(--btn-bg); border: none; border-radius: 8px; cursor: pointer; font-size: 15px; padding: 5px 8px; opacity: 0.8; }
 
+    /* --- OMR BUBBLE OPTIONS (signature element) --- */
+    #optionsBox { counter-reset: opt; }
     .option-btn {
-      display: block; background: var(--card-bg); border: 1.5px solid var(--border-color);
-      color: var(--text-color); padding: 15px; margin: 10px 0; border-radius: 12px; cursor: pointer;
-      width: 100%; text-align: left; font-size: 17px; font-weight: 500; transition: 0.18s;
+      counter-increment: opt;
+      display: flex; align-items: center; gap: 13px;
+      background: var(--card-bg); border: 1.5px solid var(--border-color);
+      color: var(--text-color); padding: 13px 15px; margin: 9px 0; border-radius: 10px; cursor: pointer;
+      width: 100%; text-align: left; font-size: 15.5px; font-weight: 500; transition: 0.15s;
     }
-    .option-btn:hover { border-color: var(--gold); background: var(--btn-bg); transform: translateX(2px); }
+    .option-btn::before {
+      content: counter(opt, upper-alpha);
+      flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+      border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-weight: 700; font-size: 13px; color: var(--text-soft);
+      transition: 0.15s;
+    }
+    .option-btn:hover { border-color: var(--accent); }
+    .option-btn:hover::before { border-color: var(--accent); color: var(--accent); }
 
     #nextBtn {
-      display: none; background: var(--success) !important; color: white !important; border: none;
-      text-align: center; margin-top: 16px; width: 100%; padding: 14px; border-radius: 12px;
-      font-size: 16px; font-weight: 600; cursor: pointer; box-shadow: 0 6px 16px rgba(31,122,92,0.22);
-      transition: 0.2s;
+      display: none; background: var(--primary-color) !important; color: white !important; border: none;
+      text-align: center; margin-top: 14px; width: 100%; padding: 13px; border-radius: 10px;
+      font-size: 15px; font-weight: 700; cursor: pointer; transition: 0.2s; font-family: var(--font-display);
     }
-    #nextBtn:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(31,122,92,0.3); }
+    #nextBtn:hover { background: var(--primary-soft); }
 
-    /* --- EXPLANATION STYLES --- */
+    /* --- EXPLANATION: sticky note with washi tape --- */
     .explanation-box {
-      display: none; background: var(--exp-bg); border-left: 4px solid var(--exp-border);
-      padding: 18px; margin-top: 20px; border-radius: 14px; font-size: 16px; line-height: 1.7;
-      color: var(--text-color); box-shadow: 0 4px 15px rgba(0,0,0,0.03); position: relative;
-      white-space: pre-line;
+      display: none; background: var(--exp-bg); padding: 18px 16px 16px; margin-top: 24px 0 0;
+      margin-top: 24px; border-radius: 4px; font-size: 14.5px; line-height: 1.65;
+      color: #2b2410; position: relative; white-space: pre-line;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+      transform: rotate(-0.4deg);
     }
-    .explanation-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px dashed var(--border-color); padding-bottom: 7px; }
-    .explanation-title { font-weight: 700; color: var(--exp-border); display: flex; align-items: center; gap: 6px; font-family: var(--font-display); font-size: 15px; }
-    .edit-exp-toggle-btn { background: none; border: none; color: var(--primary-color); font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 9px; border-radius: 8px; transition: 0.2s; }
-    .edit-exp-toggle-btn:hover { background: var(--btn-bg); }
+    [data-theme="dark"] .explanation-box { color: #f0e6c0; }
+    .explanation-box::before {
+      content: ""; position: absolute; top: -10px; left: 50%; transform: translateX(-50%) rotate(-3deg);
+      width: 70px; height: 20px; background: rgba(217,178,59,0.55); border-radius: 2px;
+    }
+    .explanation-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; padding-bottom: 8px; border-bottom: 1px dashed rgba(0,0,0,0.18); }
+    .explanation-title { font-weight: 700; color: var(--exp-border); display: flex; align-items: center; gap: 6px; font-family: var(--font-display); font-size: 13.5px; }
+    .edit-exp-toggle-btn { background: rgba(0,0,0,0.06); border: none; color: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer; padding: 4px 9px; border-radius: 6px; font-family: var(--font-mono); }
 
     .explanation-input-area {
-      display: none; margin-top: 15px; padding: 16px; background: var(--card-bg);
-      border: 1px solid var(--border-color); border-radius: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+      display: none; margin-top: 14px; padding: 15px; background: var(--card-bg);
+      border: 1.5px solid var(--border-color); border-radius: 12px;
       animation: fadeIn 0.3s ease-out;
     }
     .explanation-input-area textarea {
-      width: 100%; height: 84px; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color);
+      width: 100%; height: 80px; padding: 11px; border-radius: 8px; border: 1.5px solid var(--border-color);
       background: var(--btn-bg); color: var(--text-color); resize: vertical; box-sizing: border-box;
-      font-family: inherit; font-size: 14px; transition: 0.3s;
+      font-family: var(--font-body); font-size: 13.5px;
     }
-    .explanation-input-area textarea:focus { border-color: var(--gold); outline: none; box-shadow: 0 0 0 3px rgba(201,151,76,0.15); }
+    .explanation-input-area textarea:focus { border-color: var(--accent); outline: none; }
     .save-exp-btn {
-      background: var(--primary-color); color: white; border: none; padding: 11px 18px; border-radius: 10px;
-      cursor: pointer; margin-top: 10px; font-size: 14px; font-weight: 600; transition: 0.2s;
-      box-shadow: 0 6px 14px rgba(46,42,107,0.22);
+      background: var(--primary-color); color: white; border: none; padding: 10px 16px; border-radius: 8px;
+      cursor: pointer; margin-top: 10px; font-size: 13px; font-weight: 700; font-family: var(--font-display);
     }
-    .save-exp-btn:hover { transform: translateY(-1px); background: var(--primary-soft); }
+    .save-exp-btn:hover { background: var(--primary-soft); }
 
     .backup-area { display: flex; gap: 10px; margin-top: 16px; border-top: 1px dashed var(--border-color); padding-top: 16px; }
-    .backup-btn { flex: 1; padding: 11px; font-size: 12px; cursor: pointer; border-radius: 10px; border: 1px solid var(--border-color); background: var(--btn-bg); color: var(--text-soft); font-weight: 700; transition: 0.2s; }
-    .backup-btn:hover { color: var(--text-color); border-color: var(--gold); }
+    .backup-btn { flex: 1; padding: 10px; font-size: 11px; cursor: pointer; border-radius: 8px; border: 1.5px solid var(--border-color); background: var(--btn-bg); color: var(--text-soft); font-weight: 700; font-family: var(--font-mono); }
+    .backup-btn:hover { color: var(--accent); border-color: var(--accent); }
 
-    .tracker-card, .collection-card { display: none; margin-top: 12px; border: 1px solid var(--border-color); padding: 16px; border-radius: 16px; background: var(--card-bg); animation: fadeIn 0.35s ease-out; }
-    .tracker-card h3, .collection-card h3 { font-family: var(--font-display); font-weight: 600; }
-    .subject-group { margin-bottom: 14px; border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; }
-    .subject-title { background: var(--primary-color); color: white; padding: 11px; font-weight: 600; font-family: var(--font-display); }
-    .chapter-row { display: flex; justify-content: space-between; padding: 11px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); align-items: center; font-size: 14px; }
-    .status-badge { width: 11px; height: 11px; border-radius: 50%; display: inline-block; margin-right: 8px; }
-    .status-green { background: var(--success); } .status-yellow { background: var(--gold); } .status-red { background: var(--danger); }
+    .tracker-card, .collection-card { display: none; margin-top: 12px; border: 1.5px solid var(--border-color); padding: 16px; border-radius: 14px; background: var(--card-bg); animation: fadeIn 0.3s ease-out; }
+    .tracker-card h3, .collection-card h3 { font-family: var(--font-display); font-size: 15px; }
+    .subject-group { margin-bottom: 12px; border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden; }
+    .subject-title { background: var(--primary-color); color: white; padding: 10px; font-weight: 700; font-family: var(--font-display); font-size: 13px; }
+    .chapter-row { display: flex; justify-content: space-between; padding: 10px; background: var(--card-bg); border-bottom: 1px dashed var(--border-color); align-items: center; font-size: 13px; }
+    .status-badge { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; }
+    .status-green { background: var(--success); } .status-yellow { background: var(--exp-border); } .status-red { background: var(--danger); }
 
-    .resumeBtn-style { background: linear-gradient(135deg, var(--primary-color), var(--primary-soft)) !important; color: white !important; }
+    .resumeBtn-style { background: var(--accent) !important; color: white !important; }
 
     @media (max-width: 500px) {
-      .button-grid { grid-template-columns: 1fr; }
-      .question-card { font-size: 19px; padding: 18px 16px; }
+      .question-card { font-size: 17px; }
+      h2 { font-size: 20px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Neutral loading screen: shown first, hidden the instant auth state is known.
-       This prevents the "login page flashes before main page" issue. -->
   <div id="loadingScreen">
     <div class="loading-icon">📖</div>
   </div>
 
   <div id="loginArea" style="display:none;">
-    <div class="login-glass-card">
-        <span class="login-brand-icon">📖</span>
+    <div class="ticket-card">
+      <div class="ticket-top">
+        <div class="stamp-badge">Q3</div>
         <h1>Quiz 3 Pro</h1>
-        <p class="tagline">अपनी तैयारी, अपने अंदाज़ में</p>
-        <div style="margin-top:6px;">
+        <div class="ticket-id">ADMIT • CARD • STUDY-SESSION</div>
+      </div>
+      <div class="ticket-bottom">
           <div class="input-group">
-            <label>ईमेल</label>
+            <label>Email</label>
             <input type="email" id="emailInput" class="login-input" placeholder="Gmail ID">
           </div>
           <div class="input-group">
-            <label>पासवर्ड</label>
+            <label>Password</label>
             <input type="password" id="passwordInput" class="login-input" placeholder="Apna Password">
           </div>
           <button class="email-login-btn" onclick="loginWithEmail()">Login / Sign Up</button>
-          <p style="margin-top:10px; font-size:12px;">
-            <a href="javascript:void(0)" onclick="forgotPassword()" style="color: var(--primary-color); text-decoration:none; font-weight:600;">Forgot Password?</a>
+          <p style="margin-top:10px; font-size:11.5px; text-align:center;">
+            <a href="javascript:void(0)" onclick="forgotPassword()" style="color: var(--primary-color); text-decoration:none; font-weight:700;">Forgot Password?</a>
           </p>
-        </div>
-        <div style="margin: 16px 0; color: var(--text-soft); font-size: 12px; display:flex; align-items:center; gap:10px;">
+        <div style="margin: 14px 0; color: var(--text-soft); font-size: 11px; display:flex; align-items:center; gap:10px; font-family: var(--font-mono);">
           <span style="flex:1; height:1px; background:var(--border-color);"></span>OR<span style="flex:1; height:1px; background:var(--border-color);"></span>
         </div>
         <button class="modern-google-btn" onclick="loginWithGoogle()">
@@ -374,47 +393,42 @@
             Continue with Google
         </button>
         <button class="guest-btn" onclick="continueAsGuest()">
-            <span style="font-size: 16px;">👤</span> Bina login ke chalayein (Guest)
+            <span style="font-size: 14px;">👤</span> BINA LOGIN KE CHALAYEIN
         </button>
+      </div>
     </div>
   </div>
 
-  <div class="header-btns" id="mainHeader">
-    <div class="header-left">
-      <button id="themeBtn" onclick="toggleTheme()">🌙</button>
+  <div id="timerDisplay">⏳ 00:00</div>
+
+  <div class="brand-strip">
+    <div class="brand-mark"><span class="dot"></span>QUIZ 3 PRO</div>
+    <div style="display:flex; align-items:center; gap:10px;">
       <div style="display:flex; align-items:center; gap:5px;">
-        <span style="font-size:12px;">🔊</span>
+        <span style="font-size:11px;">🔊</span>
         <label class="voice-switch">
           <input type="checkbox" id="autoReadSwitch">
           <span class="slider"></span>
         </label>
-        <input type="range" id="voiceSpeed" min="0.5" max="1.5" step="0.1" value="1" style="width:50px;" onchange="saveVoiceSpeed(this.value)">
+        <input type="range" id="voiceSpeed" min="0.5" max="1.5" step="0.1" value="1" style="width:46px;" onchange="saveVoiceSpeed(this.value)">
       </div>
-    </div>
-
-    <div id="timerDisplay">⏳ 00:00</div>
-
-    <div class="header-right">
-      <button id="heartActionBtn" title="Subject-wise Collection" onclick="handleHeartClick()"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg></button>
-      <button id="bookmarkActionBtn" onclick="handleBookmarkClick()"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></button>
-
       <div id="userProfile" class="user-profile" onclick="toggleProfileMenu(event)"></div>
-      <button id="quitBtn" onclick="quitQuiz()">⏹️ Quit</button>
     </div>
   </div>
 
   <div class="container" id="mainContainer" style="display:none;">
     <div class="progress-container" id="pCont"><div id="progressBar"></div></div>
     <div id="setupArea">
-        <h2>🔥 Smart Quiz Pro</h2>
+        <h2>Smart Quiz Pro</h2>
+        <div class="h2-sub">SELECT SUBJECT &amp; START YOUR PRACTICE SESSION</div>
         <button id="resumeBtn" class="main-btn resumeBtn-style" style="display: none;" onclick="resumeQuiz()">🕒 पिछला क्विज़ जारी रखें</button>
         <select id="subjectSelect" onchange="updateChapters()"><option value="all">-- सभी विषय --</option></select>
 
-        <div id="chapterCheckboxContainer" style="margin-bottom: 12px; padding: 12px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--btn-bg); max-height: 180px; overflow-y: auto; display: none; text-align: left;"></div>
+        <div id="chapterCheckboxContainer" style="margin-bottom: 12px; padding: 12px; border: 1.5px solid var(--border-color); border-radius: 10px; background: var(--btn-bg); max-height: 180px; overflow-y: auto; display: none; text-align: left;"></div>
 
         <div class="challenge-grid">
-          <div><label>सवाल:</label><input type="number" id="customLimit" placeholder="10"></div>
-          <div><label>मिनट:</label><input type="number" id="customTime" placeholder="5"></div>
+          <div><label>सवाल</label><input type="number" id="customLimit" placeholder="10"></div>
+          <div><label>मिनट</label><input type="number" id="customTime" placeholder="5"></div>
         </div>
         <button class="main-btn" onclick="startQuiz()" style="background: var(--primary-color); color: white;">🚀 Start Quiz</button>
 
@@ -443,15 +457,15 @@
             <button id="savedPracticeBtn" class="grid-card yellow-card" style="display:none;" onclick="startSavedPractice()">
                 <div class="card-icon">⭐</div>
                 <div class="card-content">
-                    <div class="card-title">Save Question</div>
+                    <div class="card-title">Saved Questions</div>
                     <div class="card-sub">Practice your bookmarked questions.</div>
                 </div>
             </button>
         </div>
 
         <div class="backup-area">
-          <button class="backup-btn" onclick="exportData()">📤 Backup Data</button>
-          <button class="backup-btn" onclick="document.getElementById('importFile').click()">📥 Restore Data</button>
+          <button class="backup-btn" onclick="exportData()">📤 BACKUP</button>
+          <button class="backup-btn" onclick="document.getElementById('importFile').click()">📥 RESTORE</button>
           <input type="file" id="importFile" style="display:none" onchange="importData(event)">
         </div>
         <div id="trackerArea" class="tracker-card">
@@ -466,6 +480,18 @@
         </div>
     </div>
     <div id="quizArea" style="display:none;"></div>
+  </div>
+
+  <!-- Fixed bottom action bar — appears only during an active quiz/profile session -->
+  <div class="header-btns" id="mainHeader">
+    <div class="header-left">
+      <button id="themeBtn" onclick="toggleTheme()">🌙</button>
+      <button id="bookmarkActionBtn" onclick="handleBookmarkClick()"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></button>
+      <button id="heartActionBtn" title="Subject-wise Collection" onclick="handleHeartClick()"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg></button>
+    </div>
+    <div class="header-right">
+      <button id="quitBtn" onclick="quitQuiz()">⏹ QUIT</button>
+    </div>
   </div>
 
   <script>
@@ -494,8 +520,6 @@
 
     let quizData = {}, allQuestionsFlat = [], selectedQuestions = [], wrongQuestions = [], currentIdx = 0, score = 0, timerInterval;
     let questionsAttempted = 0, currentSub = "", currentCh = "", isWeakMode = false;
-    // NOTE: savedList & weakList now store ONLY id strings (not full objects).
-    // collections[sub][ch] also stores an array of id strings now.
     let savedList = [], revisionDates = {}, weakList = [], collections = {};
     let isGuest = false;
 
@@ -508,8 +532,6 @@
     };
 
     auth.onAuthStateChanged((user) => {
-        // Auth state is now known — hide the neutral loading screen and reveal
-        // whichever screen is actually correct (no more login-then-main flash).
         const loader = document.getElementById("loadingScreen");
         if (loader) loader.style.display = "none";
 
@@ -623,7 +645,7 @@
         document.getElementById("mainHeader").style.display = "flex";
         const up = document.getElementById("userProfile");
         up.innerHTML = `
-            <div style="font-size:24px;">👤</div>
+            <div style="font-size:22px;">👤</div>
             <div id="profileDropdown" class="profile-dropdown">
                 <div class="user-info-header">Guest Mode</div>
                 <button onclick="clearGuestAndLogin()">✨ Sign Up / Login</button>
@@ -667,19 +689,10 @@
 
     function initApp() {
       checkSavedBtn(); updateWeakBtn(); checkResumeStatus(); updateCollectionBtn();
-      // "no-cache" makes the browser always ask the server "has this file
-      // changed?" (a tiny check, not a full re-download). If unchanged, the
-      // server replies 304 and the browser reuses its local copy (fast).
-      // If you've actually edited Demo.json, the new content is fetched
-      // automatically — no manual version numbers needed, ever.
       fetch("Demo.json", { cache: "no-cache" }).then(r => r.json()).then(j => {
         quizData = j;
         allQuestionsFlat = [];
 
-        // --- AUTO ID GENERATION ---
-        // Har question ko subject+chapter+index ke basis par ek stable unique id de do.
-        // Isse JSON me question text/explanation/answer fix karne se purana save/bookmark/collection kabhi galat nahi hoga,
-        // kyunki ab hum text ki jagah ID se match karte hain.
         Object.keys(quizData).forEach(sub => {
           Object.keys(quizData[sub]).forEach(ch => {
             quizData[sub][ch].forEach((q, idx) => {
@@ -690,9 +703,6 @@
           });
         });
 
-        // --- ONE-TIME MIGRATION ---
-        // Purana data (jab savedList/weakList/collections me FULL question object ya question-text
-        // store hota tha) ko naye ID-based format me convert karo, taaki purana bookmark/collection toot na jaye.
         migrateOldDataToIds();
 
         const s = document.getElementById("subjectSelect");
@@ -703,7 +713,6 @@
       });
     }
 
-    // Helper: text se matching fresh question dhundo (sirf migration ke liye use hota hai)
     function findFreshByText(qText) {
       return allQuestionsFlat.find(q => q.question === qText);
     }
@@ -711,9 +720,8 @@
     function migrateOldDataToIds() {
       let changed = false;
 
-      // savedList migration
       savedList = savedList.map(item => {
-        if (typeof item === "string") return item; // already an id
+        if (typeof item === "string") return item;
         if (item && item.question) {
           const fresh = findFreshByText(item.question);
           changed = true;
@@ -722,7 +730,6 @@
         return null;
       }).filter(Boolean);
 
-      // weakList migration
       weakList = weakList.map(item => {
         if (typeof item === "string") return item;
         if (item && item.question) {
@@ -733,7 +740,6 @@
         return null;
       }).filter(Boolean);
 
-      // collections migration: collections[sub][ch] = [ids]
       Object.keys(collections).forEach(sub => {
         Object.keys(collections[sub]).forEach(ch => {
           collections[sub][ch] = collections[sub][ch].map(item => {
@@ -751,7 +757,6 @@
       if (changed) syncToFirebase();
     }
 
-    // Helper: id se fresh (current) question object resolve karo
     function resolveQuestionsByIds(ids) {
       return ids.map(id => allQuestionsFlat.find(q => q.id === id)).filter(Boolean);
     }
@@ -766,7 +771,6 @@
     }
 
     function saveCurrentSession() {
-      // Session me sirf question IDs store karo (full object nahi), taaki resume karte waqt bhi fresh data mile
       const idList = selectedQuestions.map(q => q.id);
       localStorage.setItem("quiz_session", JSON.stringify({
         idList, currentIdx, score, questionsAttempted, currentSub, currentCh, isWeakMode
@@ -781,11 +785,9 @@
     function resumeQuiz() {
       const session = JSON.parse(localStorage.getItem("quiz_session"));
       if (session) {
-        // Purane sessions me idList na ho (bahut purana format) to safe-guard
         if (session.idList) {
           selectedQuestions = resolveQuestionsByIds(session.idList);
         } else if (session.selectedQuestions) {
-          // fallback for very old session format
           selectedQuestions = session.selectedQuestions.map(q => findFreshByText(q.question) || q);
         }
         currentIdx = session.currentIdx; score = session.score;
@@ -817,7 +819,7 @@
           revisionDates = data.revision || {};
           weakList = data.weak || [];
           collections = data.collections || {};
-          migrateOldDataToIds(); // agar backup purane format ka hai to usko bhi migrate karo
+          migrateOldDataToIds();
           syncToFirebase();
           location.reload();
         } catch (err) { alert("गलत फाइल!"); }
@@ -846,7 +848,7 @@
       container.innerHTML += `
         <div style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px; font-weight: 600;">
           <input type="checkbox" id="selectAllChapters" onchange="toggleAllChapters(this)" style="width: 18px; height: 18px; cursor: pointer;">
-          <label for="selectAllChapters" style="cursor:pointer; color: var(--primary-color); font-size: 15px;">-- सभी अध्याय (Select All) --</label>
+          <label for="selectAllChapters" style="cursor:pointer; color: var(--primary-color); font-size: 14px;">-- सभी अध्याय (Select All) --</label>
         </div>
         <hr style="border: 0; border-top: 1px dashed var(--border-color); margin: 8px 0;">
       `;
@@ -855,7 +857,7 @@
         container.innerHTML += `
           <div style="margin: 8px 0; display: flex; align-items: center; justify-content: flex-start; gap: 10px; width: 100%;">
             <input type="checkbox" class="chapter-checkbox" value="${chapter}" id="ch_${idx}" style="width: 18px; height: 18px; cursor: pointer; flex-shrink: 0;">
-            <label for="ch_${idx}" style="cursor:pointer; font-size: 15px; width: auto; text-align: left; display: inline-block;">${chapter}</label>
+            <label for="ch_${idx}" style="cursor:pointer; font-size: 14px; width: auto; text-align: left; display: inline-block;">${chapter}</label>
           </div>
         `;
       });
@@ -873,12 +875,10 @@
       if(!wasOpen) {
         renderTracker();
         history.pushState({page: "tracker"}, "Tracker");
-        // Smoothly bring the panel into view instead of leaving it hidden below the fold
         setTimeout(() => area.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
       }
     }
 
-    // TOGGLE EDIT BOX SYSTEM
     function toggleEditExplanation() {
       const inputArea = document.getElementById("inputExpArea");
       if(inputArea) {
@@ -970,7 +970,7 @@
 
     function renderLayout() {
       document.getElementById("quizArea").innerHTML = `
-        <div id="qCount" style="text-align:right; font-size:13px; font-weight:600; margin-bottom:6px; color: var(--text-soft);"></div>
+        <div id="qCount" style="text-align:right; font-size:12px; font-weight:600; margin-bottom:6px; color: var(--text-soft);"></div>
         <div id="questionBox" class="question-card"></div>
         <div id="optionsBox"></div>
         <div id="resultBox" style="text-align:center; font-weight:700; margin-top:10px; font-family: var(--font-display);"></div>
@@ -979,14 +979,13 @@
         <div id="explanationBox" class="explanation-box"></div>
 
         <div id="inputExpArea" class="explanation-input-area">
-          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:8px; color: var(--text-color);">📝 व्याख्या लाइव एडिट करें:</label>
+          <label style="font-size:12.5px; font-weight:600; display:block; margin-bottom:8px; color: var(--text-color);">📝 व्याख्या लाइव एडिट करें:</label>
           <textarea id="customExpText" placeholder="यहाँ अपनी व्याख्या या शार्ट नोट्स टाइप करें..."></textarea>
           <button class="save-exp-btn" onclick="saveCustomExplanation()">✔ व्याख्या सुरक्षित करें</button>
         </div>`;
     }
 
     function findQuestionMeta(q) {
-      // ab quizData load hote waqt hi q.sub/q.ch set ho jate hain, ye function ab safety fallback ke liye hai
       if(q.sub && q.ch) return;
       for(let s in quizData) for(let c in quizData[s]) if(quizData[s][c].some(item => item.question === q.question)) { q.sub = s; q.ch = c; return; }
     }
@@ -1002,14 +1001,12 @@
 
       if(!text) return alert("कृपया पहले कुछ व्याख्या लिखें!");
 
-      // STEP 1: Save INSTANTLY & SYNCHRONOUSLY to localStorage (no network wait, never lost even if you quit immediately)
       let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
       localExps[qKey] = text;
       localStorage.setItem("quiz_custom_explanations", JSON.stringify(localExps));
 
-      q.customExplanation = text; // update in-memory immediately
+      q.customExplanation = text;
 
-      // STEP 2: Background best-effort backup to Firebase (for cross-device sync), doesn't block anything
       if(!isGuest) {
         const user = auth.currentUser;
         if (user) {
@@ -1020,7 +1017,6 @@
 
       alert("व्याख्या सुरक्षित हो गई!");
 
-      // Live dynamic layout up-gradation
       const eBox = document.getElementById("explanationBox");
       eBox.innerHTML = `
         <div class="explanation-header-row">
@@ -1040,8 +1036,6 @@
       if(document.getElementById("inputExpArea")) document.getElementById("inputExpArea").style.display = "none";
 
       const qKey = getSafeQuestionKey(q.question);
-      // Always check localStorage cache FIRST and let it win — this overrides any stale
-      // customExplanation that may have been restored from an old saved quiz_session
       let localExps = JSON.parse(localStorage.getItem("quiz_custom_explanations") || "{}");
       if(localExps[qKey] !== undefined) {
         q.customExplanation = localExps[qKey];
@@ -1099,13 +1093,12 @@
             `;
             eBox.style.display = "block";
           } else {
-            // Agar pehle se koi explanation nahi hai toh use empty text ke sath setup dein
             eBox.innerHTML = `
               <div class="explanation-header-row">
                 <span class="explanation-title">💡 व्याख्या</span>
                 <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Add ✎</button>
               </div>
-              <div style="color: var(--text-soft); font-style: italic; font-size: 14px;">इस सवाल की कोई व्याख्या नहीं है। नोट्स जोड़ने के लिए Edit पर क्लिक करें।</div>
+              <div style="color: var(--text-soft); font-style: italic; font-size: 13.5px;">इस सवाल की कोई व्याख्या नहीं है। नोट्स जोड़ने के लिए Edit पर क्लिक करें।</div>
             `;
             eBox.style.display = "block";
           }
@@ -1135,7 +1128,6 @@
       if(!wasOpen) {
         fillCollFilters();
         history.pushState({page: "collection"}, "Collection");
-        // Smoothly bring the panel into view instead of leaving it hidden below the fold
         setTimeout(() => area.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
       }
     }
@@ -1160,7 +1152,6 @@
       else if(ch === "all") Object.keys(collections[sub]).forEach(c => ids = ids.concat(collections[sub][c]));
       else ids = collections[sub][ch];
 
-      // IDs se hamesha FRESH (current quizData se) question resolve karo, purana cached object kabhi nahi
       let qs = resolveQuestionsByIds(ids);
       if(qs.length === 0) return alert("कोई सवाल नहीं मिला!");
       clearSession(); isWeakMode = false; selectedQuestions = [...qs].sort(() => Math.random() - 0.5); initQuizUI();
@@ -1177,7 +1168,7 @@
       if (!isWeakMode && (questionsAttempted / selectedQuestions.length) * 100 >= 80 && currentSub !== "all" && currentCh !== "all" && currentCh !== "custom_mix") {
         revisionDates[`${currentSub}_${currentCh}`] = Date.now(); syncToFirebase();
       }
-      document.getElementById("quizArea").innerHTML = `<div style="text-align:center;"><h3 style="font-family: var(--font-display);">🏁 रिजल्ट: ${score}/${selectedQuestions.length}</h3>` + (wrongQuestions.length > 0 ? `<button class="main-btn" style="background:var(--gold); color:white;" onclick="retryWrong()">🔄 गलत सुधारें (${wrongQuestions.length})</button>` : "") + `<button class="main-btn" onclick="goToHome()">🏠 होम</button></div>`;
+      document.getElementById("quizArea").innerHTML = `<div style="text-align:center;"><h3 style="font-family: var(--font-display);">🏁 रिजल्ट: ${score}/${selectedQuestions.length}</h3>` + (wrongQuestions.length > 0 ? `<button class="main-btn" style="background:var(--accent); color:white;" onclick="retryWrong()">🔄 गलत सुधारें (${wrongQuestions.length})</button>` : "") + `<button class="main-btn" onclick="goToHome()">🏠 होम</button></div>`;
       document.getElementById("quitBtn").style.display = "none";
       updateWeakBtn(); updateCollectionBtn();
     }
@@ -1224,8 +1215,6 @@
     function retryWrong() { selectedQuestions = [...wrongQuestions]; initQuizUI(); }
     function quitQuiz() { if(confirm("क्विज़ छोड़ें?")) showFinalResult(); }
 
-    // Expose functions used via inline onclick="" attributes to the global scope,
-    // since they're declared inside this DOMContentLoaded wrapper.
     Object.assign(window, {
       toggleProfileMenu, logoutUser, changeDisplayName, loginWithGoogle, loginWithEmail,
       forgotPassword, continueAsGuest, clearGuestAndLogin, toggleTheme, updateChapters,
