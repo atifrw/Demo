@@ -157,7 +157,7 @@
       display: flex; align-items: center; gap: 10px; padding: 10px 12px;
       border: 1.5px solid var(--border-color); border-radius: 12px; cursor: pointer;
       background: var(--btn-bg); transition: 0.2s; font-size: 14.5px; color: var(--text-color);
-      min-height: 46px; box-sizing: border-box; flex-shrink: 0;
+      height: 46px; box-sizing: border-box; flex-shrink: 0;
     }
     .subject-item:hover, .chapter-item:hover { border-color: var(--primary-color); }
     .subject-item.active {
@@ -359,6 +359,7 @@
         <div class="select-panels">
           <div class="subject-panel">
             <div class="panel-header"><span class="step-badge">1</span> विषय चुनें</div>
+            <div class="chapter-search" style="visibility:hidden;" aria-hidden="true">&nbsp;</div>
             <div class="subject-list" id="subjectList"></div>
           </div>
           <div class="chapter-panel">
