@@ -182,15 +182,11 @@
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       height: 100%; text-align: center; gap: 6px; padding: 10px;
     }
-    .chapter-empty-state img {
-  width: calc(100% + 60px);
-  max-width: 500px;
-  height: auto;
-  margin-left: -30px;
-  margin-right: -30px;
-  -webkit-user-drag: none;
-  user-select: none;
-  pointer-events: none;
+    .chapter-empty-state img { 
+  width: 115%; 
+  max-width: 420px; 
+  height: auto; 
+  margin: 0 -20px; /* panel ke padding ko cancel karke bahar bleed karta hai */
 }
     .ces-title { font-weight: 700; font-size: 15.5px; color: var(--text-color); }
     .ces-sub { font-size: 12.5px; color: #888; max-width: 220px; line-height: 1.4; }
@@ -863,7 +859,7 @@
       if(selectedSubject === "all" || !quizData[selectedSubject]) {
         list.innerHTML = `
           <div class="chapter-empty-state">
-            <img src="image/anime.png" alt="Select a subject" draggable="false" style="margin-bottom:4px;">
+            <img src="image/anime.png" alt="Select a subject" style="margin-bottom:4px;">
             <div class="ces-title">अपना अध्याय चुनें</div>
             <div class="ces-sub">सीखने की जादुई दुनिया में प्रवेश करें</div>
           </div>`;
