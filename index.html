@@ -150,13 +150,14 @@
       font-size: 12px; font-weight: 700; flex-shrink: 0;
     }
     .subject-list, .chapter-list {
-      max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+      height: 316px; max-height: 316px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
       padding-right: 2px;
     }
     .subject-item, .chapter-item {
       display: flex; align-items: center; gap: 10px; padding: 10px 12px;
       border: 1.5px solid var(--border-color); border-radius: 12px; cursor: pointer;
       background: var(--btn-bg); transition: 0.2s; font-size: 14.5px; color: var(--text-color);
+      min-height: 46px; box-sizing: border-box; flex-shrink: 0;
     }
     .subject-item:hover, .chapter-item:hover { border-color: var(--primary-color); }
     .subject-item.active {
