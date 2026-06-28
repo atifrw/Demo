@@ -290,7 +290,7 @@
       <button id="speakBtn" class="speak-btn" onclick="handleSpeakClick()" style="display:none;">🔊</button>
     </div>
 
-    <div id="timerDisplay">⏳ 00:00</div>
+    <div id="timerDisplay" onclick="toggleStopwatch()" style="cursor:pointer;">⏰ 00:00</div>
     
     <div class="header-right">
       <button id="heartActionBtn" title="Subject-wise Collection" onclick="handleHeartClick()"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path></svg></button>
@@ -307,10 +307,6 @@
         
         <div id="chapterCheckboxContainer" style="margin-bottom: 12px; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--btn-bg); max-height: 180px; overflow-y: auto; display: none; text-align: left;"></div>
         
-        <div class="challenge-grid">
-          <div><label>सवाल:</label><input type="number" id="customLimit" placeholder="10"></div>
-          <div><label>मिनट:</label><input type="number" id="customTime" placeholder="5"></div>
-        </div>
         <button class="main-btn" onclick="startQuiz()" style="background: var(--primary-color); color: white;">🚀 Start Quiz</button>
         <button id="resumeBtn" class="main-btn" style="background: #9b59b6; color: white; display: none;" onclick="resumeQuiz()">🕒 पिछला क्विज़ जारी रखें</button>
         
@@ -901,11 +897,7 @@
 
       if(allTempQ.length === 0) return alert("सवाल नहीं मिले! कृपया चैप्टर सेलेक्ट करें।");
       
-      const limit = parseInt(document.getElementById("customLimit").value);
-      selectedQuestions = (limit > 0) ? allTempQ.sort(() => Math.random() - 0.5).slice(0, limit) : allTempQ.sort(() => Math.random() - 0.5);
-      
-      const mins = parseInt(document.getElementById("customTime").value);
-      if(mins > 0) startTimer(mins);
+      selectedQuestions = allTempQ.sort(() => Math.random() - 0.5);
       
       initQuizUI();
     }
@@ -921,6 +913,7 @@
       document.getElementById("heartActionBtn").style.display = "flex";
       document.getElementById("speakBtn").style.display = "flex";
       document.getElementById("headerTitle").style.display = "none";
+      startStopwatch();
       
       history.pushState({page: "quiz"}, "Quiz");
     }
@@ -1165,6 +1158,34 @@
     }
     
     function startTimer(m) { let t = m * 60; document.getElementById("timerDisplay").style.display = "block"; timerInterval = setInterval(() => { let mins = Math.floor(t/60), secs = t%60; document.getElementById("timerDisplay").innerText = `⏳ ${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`; if (--t < 0) { clearInterval(timerInterval); showFinalResult(); } }, 1000); }
+
+    let stopwatchSeconds = 0, stopwatchRunning = false;
+
+    function renderStopwatch() {
+      const mins = Math.floor(stopwatchSeconds / 60), secs = stopwatchSeconds % 60;
+      const icon = stopwatchRunning ? "⏰" : "⏸️";
+      document.getElementById("timerDisplay").innerText = `${icon} ${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+    }
+
+    function startStopwatch() {
+      stopwatchSeconds = 0; stopwatchRunning = true;
+      document.getElementById("timerDisplay").style.display = "block";
+      renderStopwatch();
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if(stopwatchRunning) { stopwatchSeconds++; renderStopwatch(); }
+      }, 1000);
+    }
+
+    function toggleStopwatch() {
+      stopwatchRunning = !stopwatchRunning;
+      renderStopwatch();
+    }
+
+    function stopStopwatch() {
+      stopwatchRunning = false;
+      clearInterval(timerInterval);
+    }
     function handleBookmarkClick() { 
       const q = selectedQuestions[currentIdx], idx = savedList.indexOf(q.id); 
       idx > -1 ? savedList.splice(idx, 1) : savedList.push(q.id); 
@@ -1196,7 +1217,7 @@
       exportData, importData, saveVoiceSpeed, readFullQuestion, saveCustomExplanation,
       handleHeartClick, toggleCollection, updateCollChapters, startCollectionPractice,
       nextQuestionTrigger, goToHome, handleBookmarkClick, startSavedPractice,
-      startWeakAreasQuiz, retryWrong, quitQuiz, handleSpeakClick, toggleAutoReadMode
+      startWeakAreasQuiz, retryWrong, quitQuiz, handleSpeakClick, toggleAutoReadMode, toggleStopwatch
     });
 
     }); // end DOMContentLoaded
