@@ -82,35 +82,31 @@
     
     .profile-dropdown {
       position: absolute; top: 45px; right: 0; background: var(--card-bg);
-      border: 1px solid var(--border-color); border-radius: 12px; min-width: 160px;
+      border: 1px solid var(--border-color); border-radius: 12px; min-width: 200px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; flex-direction: column;
       z-index: 10000; overflow: hidden;
     }
     .profile-dropdown button { padding: 12px 15px; border: none; background: transparent; color: var(--text-color); text-align: left; cursor: pointer; font-size: 14px; transition: 0.2s; }
     .profile-dropdown button:hover { background: var(--btn-bg); }
     .profile-dropdown .user-info-header { padding: 12px; border-bottom: 1px solid var(--border-color); font-weight: 600; font-size: 13px; color: var(--primary-color); }
+    .profile-dropdown .voice-speed-row { padding: 10px 15px; display: flex; align-items: center; gap: 8px; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); }
+    .profile-dropdown .voice-speed-row span { font-size: 12px; white-space: nowrap; }
+    .profile-dropdown .voice-speed-row input[type="range"] { flex: 1; width: auto; margin: 0; }
 
     .container { max-width: 700px; margin: auto; background: var(--card-bg); padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); position: relative; border: 1px solid var(--border-color); }
     .progress-container { width: 100%; background: var(--border-color); height: 8px; border-radius: 5px; margin-bottom: 15px; display: none; }
     #progressBar { height: 100%; width: 0%; background: var(--progress-color); border-radius: 5px; transition: 0.4s; }
     
-    .header-btns { display: none; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 8px; flex-wrap: nowrap; }
-    .header-left { display: flex; align-items: center; gap: 8px; }
+    .header-btns { display: none; justify-content: flex-end; align-items: center; margin-bottom: 10px; gap: 8px; flex-wrap: nowrap; }
     .header-right { display: flex; align-items: center; gap: 12px; }
 
-    #themeBtn, #quitBtn, #bookmarkActionBtn, #heartActionBtn { padding: 8px 12px; font-size: 13px; background: var(--primary-color); color: white; border: none; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+    #quitBtn, #bookmarkActionBtn, #heartActionBtn { padding: 8px 12px; font-size: 13px; background: var(--primary-color); color: white; border: none; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
     #quitBtn { background: #e74c3c; display: none; }
     #bookmarkActionBtn, #heartActionBtn { background: transparent; font-size: 20px; padding: 0; display: none; }
     #bookmarkActionBtn svg, #heartActionBtn svg { width: 28px; height: 28px; fill: none; stroke: var(--text-color); stroke-width: 2; }
     #bookmarkActionBtn.active svg { fill: var(--text-color); }
     #heartActionBtn.active svg { fill: #e74c3c; stroke: #e74c3c; }
     
-    .voice-switch { position: relative; display: inline-block; width: 34px; height: 18px; }
-    .voice-switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-    .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
-    input:checked + .slider { background-color: var(--progress-color); }
-    input:checked + .slider:before { transform: translateX(16px); }
     #timerDisplay { font-weight: bold; font-size: 18px; color: #e74c3c; display: none; text-align: center; flex-grow: 1; }
     h2 { text-align: center; margin-top: 0; color: var(--primary-color); }
     select, input, .main-btn { padding: 12px; font-size: 16px; margin-bottom: 12px; width: 100%; border-radius: 10px; border: 1px solid var(--border-color); background-color: var(--btn-bg); color: var(--text-color); box-sizing: border-box; }
@@ -134,7 +130,8 @@
     .challenge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; background: var(--bg-color); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); }
     .challenge-grid label { font-size: 13px; font-weight: bold; margin-bottom: 5px; display: block; }
     .question-card { background: var(--question-bg); border-left: 6px solid var(--primary-color); padding: 20px; border-radius: 12px; margin-bottom: 20px; font-size: 24px; font-weight: 550; line-height: 1.5; position: relative; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-    .speak-btn { position: absolute; right: 10px; top: 10px; background: none; border: none; cursor: pointer; font-size: 20px; opacity: 0.6; }
+    .speak-btn { position: absolute; right: 10px; top: 10px; background: none; border: none; cursor: pointer; font-size: 20px; opacity: 0.6; border-radius: 50%; width: 36px; height: 36px; transition: 0.2s; }
+    .speak-btn.auto-active { opacity: 1; background: var(--primary-color); color: white; box-shadow: 0 2px 8px rgba(79,70,229,0.4); }
     
     .option-btn { display: block; background: var(--card-bg); border: 2px solid var(--border-color); color: var(--text-color); padding: 14px; margin: 10px 0; border-radius: 10px; cursor: pointer; width: 100%; text-align: left; font-size: 19px; font-weight: 500; transition: 0.2s; }
     .option-btn:hover { border-color: var(--primary-color); background: var(--btn-bg); }
@@ -286,18 +283,6 @@
   </div>
 
   <div class="header-btns" id="mainHeader">
-    <div class="header-left">
-      <button id="themeBtn" onclick="toggleTheme()">🌙</button>
-      <div style="display:flex; align-items:center; gap:5px;">
-        <span style="font-size:12px;">🔊</span>
-        <label class="voice-switch">
-          <input type="checkbox" id="autoReadSwitch">
-          <span class="slider"></span>
-        </label>
-        <input type="range" id="voiceSpeed" min="0.5" max="1.5" step="0.1" value="1" style="width:50px;" onchange="saveVoiceSpeed(this.value)">
-      </div>
-    </div>
-    
     <div id="timerDisplay">⏳ 00:00</div>
     
     <div class="header-right">
@@ -402,6 +387,7 @@
     // collections[sub][ch] also stores an array of id strings now.
     let savedList = [], revisionDates = {}, weakList = [], collections = {};
     let isGuest = false;
+    let speakClickTimer = null;
 
     window.onpopstate = function(event) {
       if (document.getElementById("quizArea").style.display === "block" || 
@@ -434,10 +420,16 @@
                 <img src="${photo}" alt="User">
                 <div id="profileDropdown" class="profile-dropdown">
                     <div class="user-info-header">Hi, ${name.split(' ')[0]}</div>
+                    <button onclick="toggleTheme()">🌙 Dark Mode</button>
+                    <div class="voice-speed-row">
+                      <span>🔊 Speed</span>
+                      <input type="range" id="voiceSpeed" min="0.5" max="1.5" step="0.1" value="1" onchange="saveVoiceSpeed(this.value)">
+                    </div>
                     <button onclick="changeDisplayName()">✏️ Name Change</button>
                     <button onclick="logoutUser()" style="color:#e74c3c; border-top:1px solid #eee;">🚪 Logout</button>
                 </div>`;
             up.style.display = "flex";
+            initVoiceSpeedUI();
             syncFromFirebase(user.uid);
         } else if(guestStored === "true") {
             continueAsGuest();
@@ -530,9 +522,15 @@
             <div style="font-size:24px;">👤</div>
             <div id="profileDropdown" class="profile-dropdown">
                 <div class="user-info-header">Guest Mode</div>
+                <button onclick="toggleTheme()">🌙 Dark Mode</button>
+                <div class="voice-speed-row">
+                  <span>🔊 Speed</span>
+                  <input type="range" id="voiceSpeed" min="0.5" max="1.5" step="0.1" value="1" onchange="saveVoiceSpeed(this.value)">
+                </div>
                 <button onclick="clearGuestAndLogin()">✨ Sign Up / Login</button>
             </div>`;
         up.style.display = "flex";
+        initVoiceSpeedUI();
         initApp();
     }
 
@@ -811,6 +809,12 @@
     }
 
     function saveVoiceSpeed(val) { localStorage.setItem("quiz_voice_speed", val); }
+
+    function initVoiceSpeedUI() {
+      const slider = document.getElementById("voiceSpeed");
+      if(slider) slider.value = localStorage.getItem("quiz_voice_speed") || 1;
+    }
+
     function speak(text) {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
@@ -820,6 +824,38 @@
     function readFullQuestion() {
       const q = selectedQuestions[currentIdx];
       speak(`${q.question}. विकल्प hain . . ${q.options.join(", , ")}`);
+    }
+
+    // --- SPEAKER BUTTON: single click = read once, double click = toggle persistent auto-read ---
+    function isAutoReadOn() {
+      return localStorage.getItem("quiz_auto_read") === "true";
+    }
+
+    function updateSpeakBtnUI() {
+      const btn = document.getElementById("speakBtn");
+      if(btn) btn.classList.toggle("auto-active", isAutoReadOn());
+    }
+
+    function toggleAutoReadMode() {
+      const newState = !isAutoReadOn();
+      localStorage.setItem("quiz_auto_read", newState);
+      updateSpeakBtnUI();
+      if(newState) readFullQuestion();
+    }
+
+    function handleSpeakClick() {
+      if (speakClickTimer) {
+        // Second click within window => double click => toggle auto mode
+        clearTimeout(speakClickTimer);
+        speakClickTimer = null;
+        toggleAutoReadMode();
+      } else {
+        // Wait briefly to see if a second click follows
+        speakClickTimer = setTimeout(() => {
+          speakClickTimer = null;
+          readFullQuestion();
+        }, 280);
+      }
     }
 
     function startQuiz() {
@@ -970,8 +1006,9 @@
 
       document.getElementById("progressBar").style.width = (currentIdx / selectedQuestions.length) * 100 + "%";
       document.getElementById("qCount").innerText = `सवाल: ${currentIdx + 1} / ${selectedQuestions.length}`;
-      document.getElementById("questionBox").innerHTML = `${q.question} <button class="speak-btn" onclick="readFullQuestion()">🔊</button>`;
-      if(document.getElementById("autoReadSwitch").checked) setTimeout(readFullQuestion, 500);
+      document.getElementById("questionBox").innerHTML = `${q.question} <button id="speakBtn" class="speak-btn" onclick="handleSpeakClick()">🔊</button>`;
+      updateSpeakBtnUI();
+      if(isAutoReadOn()) setTimeout(readFullQuestion, 500);
       document.getElementById("bookmarkActionBtn").classList.toggle("active", savedList.includes(q.id));
       let isHearted = (q.sub && q.ch && collections[q.sub] && collections[q.sub][q.ch]) ? collections[q.sub][q.ch].includes(q.id) : false;
       document.getElementById("heartActionBtn").classList.toggle("active", isHearted);
@@ -1137,7 +1174,7 @@
       exportData, importData, saveVoiceSpeed, readFullQuestion, saveCustomExplanation,
       handleHeartClick, toggleCollection, updateCollChapters, startCollectionPractice,
       nextQuestionTrigger, goToHome, handleBookmarkClick, startSavedPractice,
-      startWeakAreasQuiz, retryWrong, quitQuiz
+      startWeakAreasQuiz, retryWrong, quitQuiz, handleSpeakClick, toggleAutoReadMode
     });
 
     }); // end DOMContentLoaded
