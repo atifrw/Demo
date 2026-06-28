@@ -177,11 +177,6 @@
       align-items: center; justify-content: center; flex-shrink: 0; padding: 0 4px;
     }
     .chapter-item.select-all-item { background: var(--exp-bg); border-style: dashed; }
-    .chapter-search {
-      width: 100%; padding: 10px 12px; margin-bottom: 10px; border-radius: 10px;
-      border: 1px solid var(--border-color); background: var(--btn-bg); color: var(--text-color);
-      font-family: inherit; font-size: 14px; box-sizing: border-box;
-    }
     .chapter-empty-msg { text-align: center; color: #888; font-size: 13px; padding: 20px 10px; font-style: italic; }
     .question-card { background: var(--question-bg); border-left: 6px solid var(--primary-color); padding: 20px; border-radius: 12px; margin-bottom: 20px; font-size: 24px; font-weight: 550; line-height: 1.5; position: relative; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
     .speak-btn { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--btn-bg); border: none; cursor: pointer; font-size: 18px; opacity: 1; border-radius: 8px; width: 36px; height: 36px; transition: 0.2s; color: var(--text-color); }
@@ -359,12 +354,10 @@
         <div class="select-panels">
           <div class="subject-panel">
             <div class="panel-header"><span class="step-badge">1</span> विषय चुनें</div>
-            <div class="chapter-search" style="visibility:hidden;" aria-hidden="true">&nbsp;</div>
             <div class="subject-list" id="subjectList"></div>
           </div>
           <div class="chapter-panel">
             <div class="panel-header"><span class="step-badge">2</span> अध्याय चुनें</div>
-            <input type="text" id="chapterSearch" class="chapter-search" placeholder="🔍 अध्याय खोजें..." oninput="renderChapterList()">
             <div class="chapter-list" id="chapterList"></div>
           </div>
         </div>
@@ -844,15 +837,12 @@
     function selectSubject(sub) {
       selectedSubject = sub;
       renderSubjectList();
-      const searchBox = document.getElementById("chapterSearch");
-      if(searchBox) searchBox.value = "";
       renderChapterList();
     }
 
     function renderChapterList() {
       const list = document.getElementById("chapterList");
       if(!list) return;
-      const searchVal = (document.getElementById("chapterSearch")?.value || "").trim().toLowerCase();
 
       if(selectedSubject === "all" || !quizData[selectedSubject]) {
         list.innerHTML = `<div class="chapter-empty-msg">सभी विषय चुने गए हैं — सभी अध्यायों से सवाल आएंगे।</div>`;
@@ -863,13 +853,6 @@
         Array.from(document.querySelectorAll(".chapter-checkbox:checked")).map(cb => cb.value)
       );
 
-      const chapters = Object.keys(quizData[selectedSubject]).filter(ch => ch.toLowerCase().includes(searchVal));
-
-      if(chapters.length === 0) {
-        list.innerHTML = `<div class="chapter-empty-msg">कोई अध्याय नहीं मिला।</div>`;
-        return;
-      }
-
       let html = `
         <div class="chapter-item select-all-item">
           <input type="checkbox" id="selectAllChapters" onchange="toggleAllChapters(this)">
@@ -877,7 +860,6 @@
         </div>`;
 
       Object.keys(quizData[selectedSubject]).forEach((chapter, idx) => {
-        if(!chapter.toLowerCase().includes(searchVal)) return;
         const isChecked = checkedBefore.has(chapter) ? "checked" : "";
         html += `
           <label class="chapter-item">
