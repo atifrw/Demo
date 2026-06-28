@@ -285,7 +285,7 @@
 
   <div class="header-btns" id="mainHeader">
     <div class="header-left">
-      <span style="font-weight:600; color:var(--primary-color); font-size:16px; white-space:nowrap;">🔥 Smart Quiz Pro</span>
+      <span id="headerTitle" style="font-weight:600; color:var(--primary-color); font-size:16px; white-space:nowrap;">🔥 Smart Quiz Pro</span>
       <button id="quitBtn" onclick="quitQuiz()">⏹️ Quit</button>
       <button id="speakBtn" class="speak-btn" onclick="handleSpeakClick()" style="display:none;">🔊</button>
     </div>
@@ -920,6 +920,7 @@
       document.getElementById("bookmarkActionBtn").style.display = "flex";
       document.getElementById("heartActionBtn").style.display = "flex";
       document.getElementById("speakBtn").style.display = "flex";
+      document.getElementById("headerTitle").style.display = "none";
       
       history.pushState({page: "quiz"}, "Quiz");
     }
@@ -1150,6 +1151,7 @@
       document.getElementById("bookmarkActionBtn").style.display = "none";
       document.getElementById("heartActionBtn").style.display = "none";
       document.getElementById("speakBtn").style.display = "none";
+      document.getElementById("headerTitle").style.display = "inline";
       
       document.getElementById("trackerArea").style.display = "none";
       document.getElementById("collectionArea").style.display = "none";
