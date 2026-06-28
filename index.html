@@ -97,7 +97,8 @@
     .progress-container { width: 100%; background: var(--border-color); height: 8px; border-radius: 5px; margin-bottom: 15px; display: none; }
     #progressBar { height: 100%; width: 0%; background: var(--progress-color); border-radius: 5px; transition: 0.4s; }
     
-    .header-btns { display: none; justify-content: flex-end; align-items: center; margin-bottom: 10px; gap: 8px; flex-wrap: nowrap; }
+    .header-btns { display: none; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; flex-wrap: nowrap; background: var(--card-bg); padding: 10px 15px; border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+    .header-left { display: flex; align-items: center; gap: 8px; }
     .header-right { display: flex; align-items: center; gap: 12px; }
 
     #quitBtn, #bookmarkActionBtn, #heartActionBtn { padding: 8px 12px; font-size: 13px; background: var(--primary-color); color: white; border: none; cursor: pointer; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
@@ -130,7 +131,7 @@
     .challenge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; background: var(--bg-color); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); }
     .challenge-grid label { font-size: 13px; font-weight: bold; margin-bottom: 5px; display: block; }
     .question-card { background: var(--question-bg); border-left: 6px solid var(--primary-color); padding: 20px; border-radius: 12px; margin-bottom: 20px; font-size: 24px; font-weight: 550; line-height: 1.5; position: relative; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-    .speak-btn { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; background: none; border: none; cursor: pointer; font-size: 20px; opacity: 0.6; border-radius: 50%; width: 36px; height: 36px; transition: 0.2s; }
+    .speak-btn { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; background: var(--btn-bg); border: none; cursor: pointer; font-size: 18px; opacity: 1; border-radius: 8px; width: 36px; height: 36px; transition: 0.2s; color: var(--text-color); }
     .speak-btn.auto-active { opacity: 1; background: var(--primary-color); color: white; box-shadow: 0 2px 8px rgba(79,70,229,0.4); }
     
     .option-btn { display: block; background: var(--card-bg); border: 2px solid var(--border-color); color: var(--text-color); padding: 14px; margin: 10px 0; border-radius: 10px; cursor: pointer; width: 100%; text-align: left; font-size: 19px; font-weight: 500; transition: 0.2s; }
@@ -283,6 +284,11 @@
   </div>
 
   <div class="header-btns" id="mainHeader">
+    <div class="header-left">
+      <button id="quitBtn" onclick="quitQuiz()">⏹️ Quit</button>
+      <button id="speakBtn" class="speak-btn" onclick="handleSpeakClick()" style="display:none;">🔊</button>
+    </div>
+
     <div id="timerDisplay">⏳ 00:00</div>
     
     <div class="header-right">
@@ -290,7 +296,6 @@
       <button id="bookmarkActionBtn" onclick="handleBookmarkClick()"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></button>
       
       <div id="userProfile" class="user-profile" onclick="toggleProfileMenu(event)"></div>
-      <button id="quitBtn" onclick="quitQuiz()">⏹️ Quit</button>
     </div>
   </div>
 
@@ -904,13 +909,14 @@
       document.getElementById("quitBtn").style.display = "block";
       document.getElementById("bookmarkActionBtn").style.display = "flex";
       document.getElementById("heartActionBtn").style.display = "flex";
+      document.getElementById("speakBtn").style.display = "flex";
       
       history.pushState({page: "quiz"}, "Quiz");
     }
 
     function renderLayout() {
       document.getElementById("quizArea").innerHTML = `
-        <div id="qCount" style="display:flex; align-items:center; justify-content:flex-end; gap:8px; font-size:14px; font-weight:bold; margin-bottom:5px;"></div>
+        <div id="qCount" style="text-align:right; font-size:14px; font-weight:bold; margin-bottom:5px;"></div>
         <div id="questionBox" class="question-card"></div>
         <div id="optionsBox"></div>
         <div id="resultBox" style="text-align:center; font-weight:bold; margin-top:10px;"></div>
@@ -1005,7 +1011,7 @@
       }
 
       document.getElementById("progressBar").style.width = (currentIdx / selectedQuestions.length) * 100 + "%";
-      document.getElementById("qCount").innerHTML = `<button id="speakBtn" class="speak-btn" onclick="handleSpeakClick()">🔊</button><span>सवाल: ${currentIdx + 1} / ${selectedQuestions.length}</span>`;
+      document.getElementById("qCount").innerText = `सवाल: ${currentIdx + 1} / ${selectedQuestions.length}`;
       document.getElementById("questionBox").innerHTML = `${q.question}`;
       updateSpeakBtnUI();
       if(isAutoReadOn()) setTimeout(readFullQuestion, 500);
@@ -1115,6 +1121,7 @@
       document.getElementById("timerDisplay").style.display = "none";
       document.getElementById("bookmarkActionBtn").style.display = "none";
       document.getElementById("heartActionBtn").style.display = "none";
+      document.getElementById("speakBtn").style.display = "none";
       if (!isWeakMode && (questionsAttempted / selectedQuestions.length) * 100 >= 80 && currentSub !== "all" && currentCh !== "all" && currentCh !== "custom_mix") {
         revisionDates[`${currentSub}_${currentCh}`] = Date.now(); syncToFirebase();
       }
