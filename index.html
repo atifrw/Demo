@@ -573,43 +573,53 @@
     }
 
     function initApp() { 
-      checkSavedBtn(); updateWeakBtn(); checkResumeStatus(); updateCollectionBtn();
-      // "no-cache" makes the browser always ask the server "has this file
-      // changed?" (a tiny check, not a full re-download). If unchanged, the
-      // server replies 304 and the browser reuses its local copy (fast).
-      // If you've actually edited Demo.json, the new content is fetched
-      // automatically — no manual version numbers needed, ever.
-      fetch("Demo.json", { cache: "no-cache" }).then(r => r.json()).then(j => {
-        quizData = j;
-        allQuestionsFlat = [];
+  checkSavedBtn(); updateWeakBtn(); checkResumeStatus(); updateCollectionBtn();
 
-        // --- AUTO ID GENERATION ---
-        // Har question ko subject+chapter+index ke basis par ek stable unique id de do.
-        // Isse JSON me question text/explanation/answer fix karne se purana save/bookmark/collection kabhi galat nahi hoga,
-        // kyunki ab hum text ki jagah ID se match karte hain.
-        Object.keys(quizData).forEach(sub => {
-          Object.keys(quizData[sub]).forEach(ch => {
-            quizData[sub][ch].forEach((q, idx) => {
-              q.id = `${sub}__${ch}__${idx}`;
-              q.sub = sub; q.ch = ch;
-              allQuestionsFlat.push(q);
-            });
-          });
+  const jsonFiles = [
+    "ancient_history.json",
+    "medieval_history.json",
+    "modern_history.json",
+    "indian_geography.json",
+    "world_geography.json",
+    "indian_economy.json",
+    "indian_polity.json",
+    "bihar_special.json",
+    "physics.json",
+    "chemistry.json",
+    "biology.json",
+    "maths.json"
+  ];
+
+  Promise.all(
+    jsonFiles.map(f =>
+      fetch(f, { cache: "no-cache" })
+        .then(r => r.json())
+        .catch(e => { console.warn(f + " load nahi hua:", e); return {}; })
+    )
+  ).then(results => {
+    quizData = {};
+    results.forEach(fileData => Object.assign(quizData, fileData));
+
+    allQuestionsFlat = [];
+    Object.keys(quizData).forEach(sub => {
+      Object.keys(quizData[sub]).forEach(ch => {
+        quizData[sub][ch].forEach((q, idx) => {
+          q.id = `${sub}__${ch}__${idx}`;
+          q.sub = sub; q.ch = ch;
+          allQuestionsFlat.push(q);
         });
-
-        // --- ONE-TIME MIGRATION ---
-        // Purana data (jab savedList/weakList/collections me FULL question object ya question-text
-        // store hota tha) ko naye ID-based format me convert karo, taaki purana bookmark/collection toot na jaye.
-        migrateOldDataToIds();
-
-        const s = document.getElementById("subjectSelect");
-        s.innerHTML = "<option value='all'>-- सभी विषय --</option>";
-        Object.keys(j).forEach(k => s.add(new Option(k, k)));
-
-        checkSavedBtn(); updateWeakBtn(); updateCollectionBtn();
       });
-    }
+    });
 
+    migrateOldDataToIds();
+
+    const s = document.getElementById("subjectSelect");
+    s.innerHTML = "<option value='all'>-- सभी विषय --</option>";
+    Object.keys(quizData).forEach(k => s.add(new Option(k, k)));
+
+    checkSavedBtn(); updateWeakBtn(); updateCollectionBtn();
+  });
+}
     // Helper: text se matching fresh question dhundo (sirf migration ke liye use hota hai)
     function findFreshByText(qText) {
       return allQuestionsFlat.find(q => q.question === qText);
