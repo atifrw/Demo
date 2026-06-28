@@ -682,7 +682,7 @@
       // Session me sirf question IDs store karo (full object nahi), taaki resume karte waqt bhi fresh data mile
       const idList = selectedQuestions.map(q => q.id);
       localStorage.setItem("quiz_session", JSON.stringify({
-        idList, currentIdx, score, questionsAttempted, currentSub, currentCh, isWeakMode
+        idList, currentIdx, score, questionsAttempted, currentSub, currentCh, isWeakMode, stopwatchSeconds
       }));
     }
 
@@ -706,7 +706,7 @@
         currentSub = session.currentSub; currentCh = session.currentCh;
         isWeakMode = session.isWeakMode;
         if (selectedQuestions.length === 0) { clearSession(); return; }
-        initQuizUI_Display(); renderLayout(); showQuestion();
+        initQuizUI_Display(session.stopwatchSeconds || 0); renderLayout(); showQuestion();
       }
     }
 
@@ -904,7 +904,7 @@
 
     function initQuizUI() { currentIdx = score = questionsAttempted = 0; wrongQuestions = []; initQuizUI_Display(); renderLayout(); showQuestion(); }
     
-    function initQuizUI_Display() {
+    function initQuizUI_Display(resumeSeconds) {
       document.getElementById("setupArea").style.display = "none";
       document.getElementById("pCont").style.display = "block";
       document.getElementById("quizArea").style.display = "block";
@@ -913,7 +913,7 @@
       document.getElementById("heartActionBtn").style.display = "flex";
       document.getElementById("speakBtn").style.display = "flex";
       document.getElementById("headerTitle").style.display = "none";
-      startStopwatch();
+      startStopwatch(resumeSeconds);
       
       history.pushState({page: "quiz"}, "Quiz");
     }
@@ -1122,6 +1122,9 @@
     
     function showFinalResult() {
       clearSession(); clearInterval(timerInterval); window.speechSynthesis.cancel();
+      const timeTakenSec = stopwatchSeconds;
+      const ttMin = Math.floor(timeTakenSec / 60), ttSec = timeTakenSec % 60;
+      const timeTakenStr = `${ttMin.toString().padStart(2,'0')}:${ttSec.toString().padStart(2,'0')}`;
       document.getElementById("timerDisplay").style.display = "none";
       document.getElementById("bookmarkActionBtn").style.display = "none";
       document.getElementById("heartActionBtn").style.display = "none";
@@ -1129,7 +1132,7 @@
       if (!isWeakMode && (questionsAttempted / selectedQuestions.length) * 100 >= 80 && currentSub !== "all" && currentCh !== "all" && currentCh !== "custom_mix") {
         revisionDates[`${currentSub}_${currentCh}`] = Date.now(); syncToFirebase();
       }
-      document.getElementById("quizArea").innerHTML = `<div style="text-align:center;"><h3>🏁 रिजल्ट: ${score}/${selectedQuestions.length}</h3>` + (wrongQuestions.length > 0 ? `<button class="main-btn" style="background:#f39c12; color:white;" onclick="retryWrong()">🔄 गलत सुधारें (${wrongQuestions.length})</button>` : "") + `<button class="main-btn" onclick="goToHome()">🏠 होम</button></div>`;
+      document.getElementById("quizArea").innerHTML = `<div style="text-align:center;"><h3>🏁 रिजल्ट: ${score}/${selectedQuestions.length}</h3><p style="font-size:15px; color:#888;">⏱️ कुल समय: ${timeTakenStr} में ${questionsAttempted} सवाल हल किए</p>` + (wrongQuestions.length > 0 ? `<button class="main-btn" style="background:#f39c12; color:white;" onclick="retryWrong()">🔄 गलत सुधारें (${wrongQuestions.length})</button>` : "") + `<button class="main-btn" onclick="goToHome()">🏠 होम</button></div>`;
       document.getElementById("quitBtn").style.display = "none";
       updateWeakBtn(); updateCollectionBtn();
     }
@@ -1144,6 +1147,7 @@
       document.getElementById("bookmarkActionBtn").style.display = "none";
       document.getElementById("heartActionBtn").style.display = "none";
       document.getElementById("speakBtn").style.display = "none";
+      document.getElementById("timerDisplay").style.display = "none";
       document.getElementById("headerTitle").style.display = "inline";
       
       document.getElementById("trackerArea").style.display = "none";
@@ -1167,8 +1171,8 @@
       document.getElementById("timerDisplay").innerText = `${icon} ${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
     }
 
-    function startStopwatch() {
-      stopwatchSeconds = 0; stopwatchRunning = true;
+    function startStopwatch(initialSeconds) {
+      stopwatchSeconds = initialSeconds || 0; stopwatchRunning = true;
       document.getElementById("timerDisplay").style.display = "block";
       renderStopwatch();
       clearInterval(timerInterval);
