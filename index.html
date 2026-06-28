@@ -285,6 +285,7 @@
 
   <div class="header-btns" id="mainHeader">
     <div class="header-left">
+      <span style="font-weight:600; color:var(--primary-color); font-size:16px; white-space:nowrap;">🔥 Smart Quiz Pro</span>
       <button id="quitBtn" onclick="quitQuiz()">⏹️ Quit</button>
       <button id="speakBtn" class="speak-btn" onclick="handleSpeakClick()" style="display:none;">🔊</button>
     </div>
@@ -302,8 +303,6 @@
   <div class="container" id="mainContainer" style="display:none;">
     <div class="progress-container" id="pCont"><div id="progressBar"></div></div>
     <div id="setupArea">
-        <h2>🔥 Smart Quiz Pro</h2>
-        <button id="resumeBtn" class="main-btn" style="background: #9b59b6; color: white; display: none;" onclick="resumeQuiz()">🕒 पिछला क्विज़ जारी रखें</button>
         <select id="subjectSelect" onchange="updateChapters()"><option value="all">-- सभी विषय --</option></select>
         
         <div id="chapterCheckboxContainer" style="margin-bottom: 12px; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--btn-bg); max-height: 180px; overflow-y: auto; display: none; text-align: left;"></div>
@@ -313,6 +312,7 @@
           <div><label>मिनट:</label><input type="number" id="customTime" placeholder="5"></div>
         </div>
         <button class="main-btn" onclick="startQuiz()" style="background: var(--primary-color); color: white;">🚀 Start Quiz</button>
+        <button id="resumeBtn" class="main-btn" style="background: #9b59b6; color: white; display: none;" onclick="resumeQuiz()">🕒 पिछला क्विज़ जारी रखें</button>
         
         <div class="button-grid">
             <button id="weakAreasBtn" class="grid-card orange-card" style="display:none;" onclick="startWeakAreasQuiz()">
@@ -1147,6 +1147,9 @@
       document.getElementById("setupArea").style.display = "block"; 
       document.getElementById("pCont").style.display = "none"; 
       document.getElementById("quitBtn").style.display = "none"; 
+      document.getElementById("bookmarkActionBtn").style.display = "none";
+      document.getElementById("heartActionBtn").style.display = "none";
+      document.getElementById("speakBtn").style.display = "none";
       
       document.getElementById("trackerArea").style.display = "none";
       document.getElementById("collectionArea").style.display = "none";
