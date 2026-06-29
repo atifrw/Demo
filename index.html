@@ -309,7 +309,36 @@
     
     .backup-area { display: flex; gap: 10px; margin-top: 15px; border-top: 1px dashed var(--border-color); padding-top: 15px; }
     .backup-btn { flex: 1; padding: 10px; font-size: 12px; cursor: pointer; border-radius: 8px; border: 1px solid var(--border-color); background: var(--btn-bg); color: var(--text-color); font-weight: bold; }
-    .tracker-card, .collection-card { display: none; margin-top: 10px; border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; background: var(--card-bg); animation: fadeIn 0.35s ease-out; }
+    .tracker-card { display: none; margin-top: 10px; border: 1px solid var(--border-color); padding: 15px; border-radius: 12px; background: var(--card-bg); animation: fadeIn 0.35s ease-out; }
+
+    /* --- COLLECTION PRACTICE: POPUP MODAL (mirrors homepage subject/chapter panel style) --- */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 9990;
+      display: none; align-items: flex-start; justify-content: center;
+      padding: 30px 14px; overflow-y: auto; backdrop-filter: blur(2px);
+    }
+    .modal-card {
+      background: var(--card-bg); border-radius: 22px; max-width: 760px; width: 100%;
+      padding: 22px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); position: relative;
+      border: 1px solid var(--border-color); margin-top: 10px;
+      animation: fadeIn 0.3s ease-out;
+    }
+    .modal-close-btn {
+      position: absolute; top: 14px; right: 14px; background: var(--btn-bg);
+      border: 1px solid var(--border-color); width: 34px; height: 34px; border-radius: 50%;
+      font-size: 16px; cursor: pointer; color: var(--text-color); display: flex;
+      align-items: center; justify-content: center; transition: 0.2s;
+    }
+    .modal-close-btn:hover { background: var(--border-color); transform: rotate(90deg); }
+    .modal-title {
+      text-align: center; font-weight: 700; font-size: 18px; margin: 0 0 16px;
+      color: var(--primary-color); display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .chapter-item.active {
+      border-color: var(--primary-color); background: var(--card-bg);
+      box-shadow: 0 2px 8px rgba(79,70,229,0.15);
+    }
     .subject-group { margin-bottom: 15px; border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden; }
     .subject-title { background: var(--primary-color); color: white; padding: 10px; font-weight: bold; }
     .chapter-row { display: flex; justify-content: space-between; padding: 10px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); align-items: center; }
@@ -432,11 +461,22 @@
           <h3 style="text-align:center;">📅 रिवीजन स्टेटस</h3>
           <div id="trackerContent"></div>
         </div>
-        <div id="collectionArea" class="collection-card">
-          <h3 style="text-align:center;">❤️ Collection Practice</h3>
-          <select id="collSubFilter" onchange="updateCollChapters()"><option value="all">-- विषय चुनें --</option></select>
-          <select id="collChFilter"><option value="all">-- अध्याय चुनें --</option></select>
-          <button class="main-btn" onclick="startCollectionPractice()" style="background: #27ae60; color: white; margin-top: 10px;">🚀 Practice Start</button>
+        <div id="collectionArea" class="modal-overlay" onclick="if(event.target===this) toggleCollection()">
+          <div class="modal-card">
+            <button class="modal-close-btn" onclick="toggleCollection()">✕</button>
+            <h3 class="modal-title">❤️ Collection Practice</h3>
+            <div class="select-panels">
+              <div class="subject-panel">
+                <div class="panel-header"><span class="step-badge">1</span> विषय चुनें</div>
+                <div class="subject-list" id="collSubjectList"></div>
+              </div>
+              <div class="chapter-panel">
+                <div class="panel-header"><span class="step-badge">2</span> अध्याय चुनें</div>
+                <div class="chapter-list" id="collChapterList"></div>
+              </div>
+            </div>
+            <button class="main-btn cta-btn start-quiz-btn" onclick="startCollectionPractice()">🚀 Practice Start</button>
+          </div>
         </div>
     </div>
     <div id="quizArea" style="display:none;"></div>
@@ -476,7 +516,7 @@
     window.onpopstate = function(event) {
       if (document.getElementById("quizArea").style.display === "block" || 
           document.getElementById("trackerArea").style.display === "block" ||
-          document.getElementById("collectionArea").style.display === "block") {
+          document.getElementById("collectionArea").style.display === "flex") {
         goToHome();
       }
     };
@@ -1209,33 +1249,89 @@
       syncToFirebase(); document.getElementById("heartActionBtn").classList.toggle("active"); updateCollectionBtn();
     }
 
+    let collSelectedSub = "all", collSelectedCh = "all";
+
     function toggleCollection() {
       const area = document.getElementById("collectionArea");
-      const wasOpen = area.style.display === "block";
-      area.style.display = wasOpen ? "none" : "block";
+      const wasOpen = area.style.display === "flex";
+      area.style.display = wasOpen ? "none" : "flex";
       if(!wasOpen) {
-        fillCollFilters();
+        collSelectedSub = "all"; collSelectedCh = "all";
+        renderCollSubjectList();
+        renderCollChapterList();
         history.pushState({page: "collection"}, "Collection");
-        // Smoothly bring the panel into view instead of leaving it hidden below the fold
-        setTimeout(() => area.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
       }
     }
 
-    function fillCollFilters() {
-      const sFilter = document.getElementById("collSubFilter");
-      sFilter.innerHTML = "<option value='all'>-- All Saved Subjects --</option>";
-      Object.keys(collections).forEach(s => sFilter.add(new Option(s, s)));
-      updateCollChapters();
+    function getCollChapterCount(sub, ch) {
+      return (collections[sub] && collections[sub][ch]) ? collections[sub][ch].length : 0;
     }
 
-    function updateCollChapters() {
-      const s = document.getElementById("collSubFilter").value, cFilter = document.getElementById("collChFilter");
-      cFilter.innerHTML = "<option value='all'>-- All Chapters --</option>";
-      if(s !== "all" && collections[s]) Object.keys(collections[s]).forEach(c => cFilter.add(new Option(c, c)));
+    function renderCollSubjectList() {
+      const list = document.getElementById("collSubjectList");
+      if(!list) return;
+      let html = `
+        <div class="subject-item ${collSelectedSub === 'all' ? 'active' : ''}" onclick="selectCollSubject('all')">
+          <span class="subj-icon">🗂️</span>
+          <span class="subj-name">-- सभी विषय --</span>
+          <span class="subj-arrow">›</span>
+        </div>`;
+      Object.keys(collections).forEach(sub => {
+        html += `
+          <div class="subject-item ${collSelectedSub === sub ? 'active' : ''}" onclick="selectCollSubject('${sub.replace(/'/g, "\\'")}')">
+            <span class="subj-icon">${getSubjectIcon(sub)}</span>
+            <span class="subj-name">${sub}</span>
+            <span class="subj-arrow">›</span>
+          </div>`;
+      });
+      list.innerHTML = html || `<div class="chapter-empty-msg">कोई सेव्ड विषय नहीं है</div>`;
+    }
+
+    function selectCollSubject(sub) {
+      collSelectedSub = sub;
+      collSelectedCh = "all";
+      renderCollSubjectList();
+      renderCollChapterList();
+    }
+
+    function renderCollChapterList() {
+      const list = document.getElementById("collChapterList");
+      if(!list) return;
+
+      if(collSelectedSub === "all" || !collections[collSelectedSub]) {
+        list.innerHTML = `
+          <div class="chapter-empty-state">
+            <img src="image/anime.png" alt="Select a subject" style="margin-bottom:4px;">
+            <div class="ces-title">अपना अध्याय चुनें</div>
+            <div class="ces-sub">सीखने की जादुई दुनिया में प्रवेश करें</div>
+          </div>`;
+        return;
+      }
+
+      let html = `
+        <div class="chapter-item select-all-item ${collSelectedCh === 'all' ? 'active' : ''}" onclick="selectCollChapter('all')">
+          <span style="font-weight:600; color: var(--primary-color);">-- सभी अध्याय (Select All) --</span>
+        </div>`;
+
+      Object.keys(collections[collSelectedSub]).forEach((chapter) => {
+        const count = getCollChapterCount(collSelectedSub, chapter);
+        html += `
+          <div class="chapter-item ${collSelectedCh === chapter ? 'active' : ''}" onclick="selectCollChapter('${chapter.replace(/'/g, "\\'")}')">
+            <span class="ch-badge">${count}</span>
+            <span>${chapter}</span>
+          </div>`;
+      });
+
+      list.innerHTML = html;
+    }
+
+    function selectCollChapter(ch) {
+      collSelectedCh = ch;
+      renderCollChapterList();
     }
 
     function startCollectionPractice() {
-      const sub = document.getElementById("collSubFilter").value, ch = document.getElementById("collChFilter").value;
+      const sub = collSelectedSub, ch = collSelectedCh;
       let ids = [];
       if(sub === "all") Object.keys(collections).forEach(s => Object.keys(collections[s]).forEach(c => ids = ids.concat(collections[s][c])));
       else if(ch === "all") Object.keys(collections[sub]).forEach(c => ids = ids.concat(collections[sub][c]));
@@ -1244,6 +1340,7 @@
       // IDs se hamesha FRESH (current quizData se) question resolve karo, purana cached object kabhi nahi
       let qs = resolveQuestionsByIds(ids);
       if(qs.length === 0) return alert("कोई सवाल नहीं मिला!");
+      document.getElementById("collectionArea").style.display = "none";
       clearSession(); isWeakMode = false; selectedQuestions = [...qs].sort(() => Math.random() - 0.5); initQuizUI();
     }
 
@@ -1349,7 +1446,7 @@
       forgotPassword, continueAsGuest, clearGuestAndLogin, toggleTheme, selectSubject, renderChapterList,
       toggleAllChapters, toggleTracker, toggleEditExplanation, startQuiz, resumeQuiz,
       exportData, importData, saveVoiceSpeed, readFullQuestion, saveCustomExplanation,
-      handleHeartClick, toggleCollection, updateCollChapters, startCollectionPractice,
+      handleHeartClick, toggleCollection, selectCollSubject, selectCollChapter, startCollectionPractice,
       nextQuestionTrigger, goToHome, handleBookmarkClick, startSavedPractice,
       startWeakAreasQuiz, retryWrong, quitQuiz, handleSpeakClick, toggleAutoReadMode, toggleStopwatch
     });
