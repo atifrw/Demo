@@ -1251,14 +1251,14 @@
       syncToFirebase(); document.getElementById("heartActionBtn").classList.toggle("active"); updateCollectionBtn();
     }
 
-    let collSelectedSub = "all", collSelectedCh = "all";
+    let collSelectedSub = "all";
 
     function toggleCollection() {
       const area = document.getElementById("collectionArea");
       const wasOpen = area.style.display === "flex";
       area.style.display = wasOpen ? "none" : "flex";
       if(!wasOpen) {
-        collSelectedSub = "all"; collSelectedCh = "all";
+        collSelectedSub = "all";
         renderCollSubjectList();
         renderCollChapterList();
         history.pushState({page: "collection"}, "Collection");
@@ -1278,7 +1278,9 @@
           <span class="subj-name">-- सभी विषय --</span>
           <span class="subj-arrow">›</span>
         </div>`;
-      Object.keys(collections).forEach(sub => {
+      // Order homepage jaisa hi rakha gaya hai (quizData ke order se), sirf wahi subjects jinme koi saved collection hai
+      Object.keys(quizData).forEach(sub => {
+        if(!collections[sub] || Object.keys(collections[sub]).length === 0) return;
         html += `
           <div class="subject-item ${collSelectedSub === sub ? 'active' : ''}" onclick="selectCollSubject('${sub.replace(/'/g, "\\'")}')">
             <span class="subj-icon">${getSubjectIcon(sub)}</span>
@@ -1286,12 +1288,11 @@
             <span class="subj-arrow">›</span>
           </div>`;
       });
-      list.innerHTML = html || `<div class="chapter-empty-msg">कोई सेव्ड विषय नहीं है</div>`;
+      list.innerHTML = html;
     }
 
     function selectCollSubject(sub) {
       collSelectedSub = sub;
-      collSelectedCh = "all";
       renderCollSubjectList();
       renderCollChapterList();
     }
@@ -1310,34 +1311,56 @@
         return;
       }
 
+      const checkedBefore = new Set(
+        Array.from(document.querySelectorAll(".coll-chapter-checkbox:checked")).map(cb => cb.value)
+      );
+
       let html = `
-        <div class="chapter-item select-all-item ${collSelectedCh === 'all' ? 'active' : ''}" onclick="selectCollChapter('all')">
+        <div class="chapter-item select-all-item">
+          <input type="checkbox" id="collSelectAllChapters" onchange="toggleAllCollChapters(this)">
           <span style="font-weight:600; color: var(--primary-color);">-- सभी अध्याय (Select All) --</span>
         </div>`;
 
-      Object.keys(collections[collSelectedSub]).forEach((chapter) => {
+      // Order homepage jaisa hi (quizData ke chapter order se), sirf wahi chapters jinme koi saved question hai
+      const homepageOrder = quizData[collSelectedSub] ? Object.keys(quizData[collSelectedSub]) : [];
+      const savedChapters = Object.keys(collections[collSelectedSub]);
+      const orderedChapters = homepageOrder.length
+        ? homepageOrder.filter(ch => savedChapters.includes(ch))
+        : savedChapters;
+
+      orderedChapters.forEach(chapter => {
         const count = getCollChapterCount(collSelectedSub, chapter);
+        const isChecked = checkedBefore.has(chapter) ? "checked" : "";
         html += `
-          <div class="chapter-item ${collSelectedCh === chapter ? 'active' : ''}" onclick="selectCollChapter('${chapter.replace(/'/g, "\\'")}')">
+          <label class="chapter-item">
+            <input type="checkbox" class="coll-chapter-checkbox" value="${chapter}" ${isChecked}>
             <span class="ch-badge">${count}</span>
             <span>${chapter}</span>
-          </div>`;
+          </label>`;
       });
 
       list.innerHTML = html;
     }
 
-    function selectCollChapter(ch) {
-      collSelectedCh = ch;
-      renderCollChapterList();
+    function toggleAllCollChapters(master) {
+      const checkboxes = document.querySelectorAll(".coll-chapter-checkbox");
+      checkboxes.forEach(cb => cb.checked = master.checked);
     }
 
     function startCollectionPractice() {
-      const sub = collSelectedSub, ch = collSelectedCh;
+      const sub = collSelectedSub;
       let ids = [];
-      if(sub === "all") Object.keys(collections).forEach(s => Object.keys(collections[s]).forEach(c => ids = ids.concat(collections[s][c])));
-      else if(ch === "all") Object.keys(collections[sub]).forEach(c => ids = ids.concat(collections[sub][c]));
-      else ids = collections[sub][ch];
+
+      if(sub === "all") {
+        Object.keys(collections).forEach(s => Object.keys(collections[s]).forEach(c => ids = ids.concat(collections[s][c])));
+      } else {
+        const checkedBoxes = document.querySelectorAll(".coll-chapter-checkbox:checked");
+        if(checkedBoxes.length === 0) {
+          Object.keys(collections[sub]).forEach(c => ids = ids.concat(collections[sub][c]));
+        } else {
+          checkedBoxes.forEach(cb => ids = ids.concat(collections[sub][cb.value]));
+        }
+      }
 
       // IDs se hamesha FRESH (current quizData se) question resolve karo, purana cached object kabhi nahi
       let qs = resolveQuestionsByIds(ids);
@@ -1448,7 +1471,7 @@
       forgotPassword, continueAsGuest, clearGuestAndLogin, toggleTheme, selectSubject, renderChapterList,
       toggleAllChapters, toggleTracker, toggleEditExplanation, startQuiz, resumeQuiz,
       exportData, importData, saveVoiceSpeed, readFullQuestion, saveCustomExplanation,
-      handleHeartClick, toggleCollection, selectCollSubject, selectCollChapter, startCollectionPractice,
+      handleHeartClick, toggleCollection, selectCollSubject, toggleAllCollChapters, startCollectionPractice,
       nextQuestionTrigger, goToHome, handleBookmarkClick, startSavedPractice,
       startWeakAreasQuiz, retryWrong, quitQuiz, handleSpeakClick, toggleAutoReadMode, toggleStopwatch
     });
