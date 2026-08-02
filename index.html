@@ -551,11 +551,19 @@
                       <span>🔊 Speed</span>
                       <input type="range" id="voiceSpeed" min="0.5" max="1.5" step="0.1" value="1" onchange="saveVoiceSpeed(this.value)">
                     </div>
+                    <div class="voice-speed-row">
+                      <span>🔀 Order</span>
+                      <select id="quizOrderMode" onchange="saveOrderMode(this.value)" style="flex:1;padding:6px;border-radius:6px;border:1px solid var(--border-color);background:var(--btn-bg);color:var(--text-color);">
+                        <option value="random">Random</option>
+                        <option value="sequence">Sequence</option>
+                      </select>
+                    </div>
                     <button onclick="changeDisplayName()">✏️ Name Change</button>
                     <button onclick="logoutUser()" style="color:#e74c3c; border-top:1px solid #eee;">🚪 Logout</button>
                 </div>`;
             up.style.display = "flex";
             initVoiceSpeedUI();
+            initOrderModeUI();
             syncFromFirebase(user.uid);
         } else if(guestStored === "true") {
             continueAsGuest();
@@ -653,10 +661,18 @@
                   <span>🔊 Speed</span>
                   <input type="range" id="voiceSpeed" min="0.5" max="1.5" step="0.1" value="1" onchange="saveVoiceSpeed(this.value)">
                 </div>
+                <div class="voice-speed-row">
+                  <span>🔀 Order</span>
+                  <select id="quizOrderMode" onchange="saveOrderMode(this.value)" style="flex:1;padding:6px;border-radius:6px;border:1px solid var(--border-color);background:var(--btn-bg);color:var(--text-color);">
+                    <option value="random">Random</option>
+                    <option value="sequence">Sequence</option>
+                  </select>
+                </div>
                 <button onclick="clearGuestAndLogin()">✨ Sign Up / Login</button>
             </div>`;
         up.style.display = "flex";
         initVoiceSpeedUI();
+        initOrderModeUI();
         initApp();
     }
 
@@ -998,6 +1014,18 @@
       if(slider) slider.value = localStorage.getItem("quiz_voice_speed") || 1;
     }
 
+    function saveOrderMode(val) { localStorage.setItem("quiz_order_mode", val); }
+
+    function initOrderModeUI() {
+      const sel = document.getElementById("quizOrderMode");
+      if(sel) sel.value = localStorage.getItem("quiz_order_mode") || "random";
+    }
+
+    function orderQuestions(arr) {
+      const mode = localStorage.getItem("quiz_order_mode") || "random";
+      return mode === "sequence" ? [...arr] : [...arr].sort(() => Math.random() - 0.5);
+    }
+
     function speak(text) {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
@@ -1069,7 +1097,7 @@
 
       if(allTempQ.length === 0) return alert("सवाल नहीं मिले! कृपया चैप्टर सेलेक्ट करें।");
       
-      selectedQuestions = allTempQ.sort(() => Math.random() - 0.5);
+      selectedQuestions = orderQuestions(allTempQ);
       
       initQuizUI();
     }
@@ -1366,7 +1394,7 @@
       let qs = resolveQuestionsByIds(ids);
       if(qs.length === 0) return alert("कोई सवाल नहीं मिला!");
       document.getElementById("collectionArea").style.display = "none";
-      clearSession(); isWeakMode = false; selectedQuestions = [...qs].sort(() => Math.random() - 0.5); initQuizUI();
+      clearSession(); isWeakMode = false; selectedQuestions = orderQuestions(qs); initQuizUI();
     }
 
     function updateCollectionBtn() { document.getElementById("collectionMainBtn").style.display = Object.keys(collections).length > 0 ? "flex" : "none"; }
@@ -1451,13 +1479,13 @@
     function updateWeakBtn() { document.getElementById("weakAreasBtn").style.display = (weakList.length > 0) ? "flex" : "none"; if(document.getElementById("weakCount")) document.getElementById("weakCount").innerText = weakList.length; }
     function startSavedPractice() { 
       clearSession(); isWeakMode = false; 
-      selectedQuestions = resolveQuestionsByIds(savedList).sort(() => Math.random() - 0.5); 
+      selectedQuestions = orderQuestions(resolveQuestionsByIds(savedList)); 
       if(selectedQuestions.length === 0) return alert("कोई सवाल नहीं मिला!");
       initQuizUI(); 
     }
     function startWeakAreasQuiz() { 
       clearSession(); isWeakMode = true; 
-      selectedQuestions = resolveQuestionsByIds(weakList).sort(() => Math.random() - 0.5); 
+      selectedQuestions = orderQuestions(resolveQuestionsByIds(weakList)); 
       if(selectedQuestions.length === 0) return alert("कोई सवाल नहीं मिला!");
       initQuizUI(); 
     }
@@ -1470,7 +1498,7 @@
       toggleProfileMenu, logoutUser, changeDisplayName, loginWithGoogle, loginWithEmail,
       forgotPassword, continueAsGuest, clearGuestAndLogin, toggleTheme, selectSubject, renderChapterList,
       toggleAllChapters, toggleTracker, toggleEditExplanation, startQuiz, resumeQuiz,
-      exportData, importData, saveVoiceSpeed, readFullQuestion, saveCustomExplanation,
+      exportData, importData, saveVoiceSpeed, saveOrderMode, readFullQuestion, saveCustomExplanation,
       handleHeartClick, toggleCollection, selectCollSubject, toggleAllCollChapters, startCollectionPractice,
       nextQuestionTrigger, goToHome, handleBookmarkClick, startSavedPractice,
       startWeakAreasQuiz, retryWrong, quitQuiz, handleSpeakClick, toggleAutoReadMode, toggleStopwatch
