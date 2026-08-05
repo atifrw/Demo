@@ -527,6 +527,7 @@
     let selectedSubject = "all";
     let isGuest = false;
     let speakClickTimer = null;
+    let hasInitializedOnce = false; // tracks whether initApp() has already run once for this page load
 
     window.onpopstate = function(event) {
       if (document.getElementById("quizArea").style.display === "block" || 
@@ -577,7 +578,20 @@
             up.style.display = "flex";
             initVoiceSpeedUI();
             updateOrderModeUI();
-            syncFromFirebase(user.uid);
+
+            // FIX (bug 2): Firebase silently refreshes/re-fires auth state (e.g. token
+            // refresh roughly every hour) even while a quiz is mid-session. Previously
+            // this always called syncFromFirebase(), which re-fetches savedList/weakList/
+            // collections from the server and OVERWRITES local state — sometimes with a
+            // slightly stale snapshot taken just before a bookmark/heart click had fully
+            // synced. That made the button color appear to "undo" itself until the user
+            // went home and resumed. Now we only do the full re-sync on the FIRST auth
+            // event per page load; later re-fires (mid-quiz) are ignored so local state
+            // (and its pending Firebase writes) is never clobbered.
+            if (!hasInitializedOnce) {
+              hasInitializedOnce = true;
+              syncFromFirebase(user.uid);
+            }
         } else if(guestStored === "true") {
             continueAsGuest();
         } else {
@@ -686,7 +700,10 @@
         up.style.display = "flex";
         initVoiceSpeedUI();
         updateOrderModeUI();
-        initApp();
+        if (!hasInitializedOnce) {
+          hasInitializedOnce = true;
+          initApp();
+        }
     }
 
     function clearGuestAndLogin() {
@@ -1204,6 +1221,10 @@
 
     function showQuestion() {
       const q = selectedQuestions[currentIdx];
+      // FIX (bug 1): remember exactly which question this render is for, so any
+      // async callback that resolves later (Firebase explanation fetch) can check
+      // whether the user has already moved on before touching the DOM.
+      const questionIdAtRenderTime = q.id;
       if(!q.sub || !q.ch) findQuestionMeta(q);
 
       if(document.getElementById("inputExpArea")) document.getElementById("inputExpArea").style.display = "none";
@@ -1220,7 +1241,14 @@
           database.ref('users/' + user.uid + '/custom_explanations/' + qKey).once('value').then(snap => {
             if(snap.exists() && !q.customExplanation) {
               q.customExplanation = snap.val();
-              if(document.getElementById("explanationBox") && document.getElementById("explanationBox").style.display === "block") {
+              // Only touch the DOM if the user is STILL looking at this exact question
+              // (multi-chapter sessions fire many of these fetches in parallel; a slow
+              // one resolving after the user has moved on used to overwrite whatever
+              // question is currently on screen and could leave the layout in a broken
+              // state where the Next button never appeared).
+              const stillOnSameQuestion = selectedQuestions[currentIdx] &&
+                                           selectedQuestions[currentIdx].id === questionIdAtRenderTime;
+              if(stillOnSameQuestion && document.getElementById("explanationBox") && document.getElementById("explanationBox").style.display === "block") {
                 document.getElementById("explanationBox").innerHTML = `
                   <div class="explanation-header-row">
                     <span class="explanation-title">💡 व्याख्या</span>
