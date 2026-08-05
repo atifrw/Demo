@@ -712,19 +712,35 @@
     }
 
     function syncToFirebase() {
-        const dataToSave = {
-            bookmarks: savedList,
-            revision: revisionDates,
-            weak: weakList,
-            collections: collections
-        };
+        // FIX: this function used to run un-guarded. If Firebase's synchronous data
+        // validation ever rejected the payload (e.g. an undefined value or an invalid
+        // key character somewhere in savedList/weakList/collections), database.ref(...)
+        // .update(...) throws IMMEDIATELY (before returning a promise). Since this
+        // function is called directly from inside the option-click handler (right after
+        // a wrong answer, to add the question to weakList), an uncaught throw here used
+        // to stop the rest of that click handler too — which is why the "Next Question"
+        // button sometimes never appeared specifically after wrong answers. Wrapping
+        // everything in try/catch means a Firebase hiccup can never block the UI again;
+        // worst case the background sync silently fails and is retried on the next
+        // successful syncToFirebase() call (the full data set is always sent, not a diff).
+        try {
+            const dataToSave = {
+                bookmarks: savedList,
+                revision: revisionDates,
+                weak: weakList,
+                collections: collections
+            };
 
-        if(isGuest) {
-            localStorage.setItem("quiz_guest_data", JSON.stringify(dataToSave));
-        } else {
-            const user = auth.currentUser;
-            if (!user) return;
-            database.ref('users/' + user.uid).update(dataToSave);
+            if(isGuest) {
+                localStorage.setItem("quiz_guest_data", JSON.stringify(dataToSave));
+            } else {
+                const user = auth.currentUser;
+                if (!user) return;
+                database.ref('users/' + user.uid).update(dataToSave)
+                    .catch(e => console.warn("syncToFirebase background update failed:", e.message));
+            }
+        } catch (e) {
+            console.warn("syncToFirebase failed synchronously (ignored so UI keeps working):", e.message);
         }
     }
 
@@ -1277,39 +1293,48 @@
         b.onclick = () => {
           questionsAttempted++;
           document.querySelectorAll(".option-btn").forEach(btn => btn.style.pointerEvents = "none");
-          if(opt === q.answer) { 
-            score++; rBox.innerHTML = "<span style='color:#10b981'>✅ सही जवाब!</span>"; 
-            if(isWeakMode) { weakList = weakList.filter(id => id !== q.id); syncToFirebase(); }
-          } else { 
-            rBox.innerHTML = `<span style='color:#e74c3c'>❌ गलत जवाब! सही उत्तर: ${q.answer}</span>`; 
-            wrongQuestions.push(q); 
-            if(!weakList.includes(q.id)) { weakList.push(q.id); syncToFirebase(); }
+          // FIX: everything below is wrapped in try/finally. Whatever happens inside
+          // (scoring, weakList/Firebase sync, explanation rendering), the finally block
+          // guarantees the Next button always appears and the session always saves —
+          // so a background sync hiccup can never again leave the quiz stuck.
+          try {
+            if(opt === q.answer) { 
+              score++; rBox.innerHTML = "<span style='color:#10b981'>✅ सही जवाब!</span>"; 
+              if(isWeakMode) { weakList = weakList.filter(id => id !== q.id); syncToFirebase(); }
+            } else { 
+              rBox.innerHTML = `<span style='color:#e74c3c'>❌ गलत जवाब! सही उत्तर: ${q.answer}</span>`; 
+              wrongQuestions.push(q); 
+              if(!weakList.includes(q.id)) { weakList.push(q.id); syncToFirebase(); }
+            }
+
+            const finalExp = q.customExplanation || q.explanation;
+            if(finalExp) { 
+              eBox.innerHTML = `
+                <div class="explanation-header-row">
+                  <span class="explanation-title">💡 व्याख्या</span>
+                  <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
+                </div>
+                <div>${finalExp}</div>
+              `; 
+              eBox.style.display = "block"; 
+            } else {
+              // Agar pehle se koi explanation nahi hai toh use empty text ke sath setup dein
+              eBox.innerHTML = `
+                <div class="explanation-header-row">
+                  <span class="explanation-title">💡 व्याख्या</span>
+                  <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Add ✎</button>
+                </div>
+                <div style="color: #888; font-style: italic; font-size: 14px;">इस सवाल की कोई व्याख्या नहीं है। नोट्स जोड़ने के लिए Edit पर क्लिक करें।</div>
+              `;
+              eBox.style.display = "block";
+            }
+
+            document.getElementById("customExpText").value = q.customExplanation || "";
+          } catch (e) {
+            console.warn("Answer-handling step failed (Next button will still show):", e.message);
+          } finally {
+            nBtn.style.display = "block"; saveCurrentSession();
           }
-          
-          const finalExp = q.customExplanation || q.explanation;
-          if(finalExp) { 
-            eBox.innerHTML = `
-              <div class="explanation-header-row">
-                <span class="explanation-title">💡 व्याख्या</span>
-                <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Edit ✎</button>
-              </div>
-              <div>${finalExp}</div>
-            `; 
-            eBox.style.display = "block"; 
-          } else {
-            // Agar pehle se koi explanation nahi hai toh use empty text ke sath setup dein
-            eBox.innerHTML = `
-              <div class="explanation-header-row">
-                <span class="explanation-title">💡 व्याख्या</span>
-                <button class="edit-exp-toggle-btn" onclick="toggleEditExplanation()">Add ✎</button>
-              </div>
-              <div style="color: #888; font-style: italic; font-size: 14px;">इस सवाल की कोई व्याख्या नहीं है। नोट्स जोड़ने के लिए Edit पर क्लिक करें।</div>
-            `;
-            eBox.style.display = "block";
-          }
-          
-          document.getElementById("customExpText").value = q.customExplanation || "";
-          nBtn.style.display = "block"; saveCurrentSession();
         };
         oBox.appendChild(b);
       });
