@@ -499,6 +499,11 @@
   ],
   "वैदिक": [
     {
+  "question": "सूची I(शासक) को सूची II(वंश) से सुमेलित कीजिए:<table style='margin-top:8px; border-collapse:collapse;'><tr><td style='padding:2px 8px 2px 0;'>A. डिमेट्रियस</td><td style='padding:2px 0;'>1. पहलव</td></tr><tr><td style='padding:2px 8px 2px 0;'>B. रुद्रदामन</td><td style='padding:2px 0;'>2. कुषाण</td></tr><tr><td style='padding:2px 8px 2px 0;'>C. गोंडोफर्नीज</td><td style='padding:2px 0;'>3. हिंद-यूनानी</td></tr><tr><td style='padding:2px 8px 2px 0;'>D. विम</td><td style='padding:2px 0;'>4. शक</td></tr></table>",
+  "options": ["A1 B4 C3 D2", "A2 B1 C4 D3", "A3 B4 C1 D2", "A4 B2 C1 D3"],
+  "answer": "A3 B4 C1 D2"
+    },
+    {
       "question": "'आर्य' शब्द इंगित करता है–",
       "options": ["नृजाति समूह को", "यायावरी जन को", "भाषा समूह को", "श्रेष्ठ वंश को"],
       "answer": "श्रेष्ठ वंश को",
