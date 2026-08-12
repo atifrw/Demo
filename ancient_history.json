@@ -3821,9 +3821,9 @@
     "answer": "ताम्र"
   },
   {
-    "question": "सूची I(शासक) को सूची II(वंश) से सुमेलित कीजिए:<br>A. डिमेट्रियस &nbsp;&nbsp; 1. पहलव<br>B. रुद्रदामन &nbsp;&nbsp; 2. कुषाण<br>C. गोंडोफर्नीज &nbsp;&nbsp; 3. हिंद-यूनानी<br>D. विम &nbsp; 4. शक",
-    "options": ["A1 B4 C3 D2", "A2 B1 C4 D3", "A3 B4 C1 D2", "A4 B2 C1 D3"],
-    "answer": "A3 B4 C1 D2"
+  "question": "सूची I(शासक) को सूची II(वंश) से सुमेलित कीजिए:<div class='match-grid'><span>A. डिमेट्रियस</span><span>1. पहलव</span><span>B. रुद्रदामन</span><span>2. कुषाण</span><span>C. गोंडोफर्नीज</span><span>3. हिंद-यूनानी</span><span>D. विम</span><span>4. शक</span></div>",
+  "options": ["A1 B4 C3 D2", "A2 B1 C4 D3", "A3 B4 C1 D2", "A4 B2 C1 D3"],
+  "answer": "A3 B4 C1 D2"
   },
   {
     "question": "प्राचीन काल के भारत पर आक्रमणों के संबंध में, निम्नलिखित में से कौन-सा एक सही कालानुक्रम है?",
@@ -4006,9 +4006,9 @@
     "answer": "सातवाहन - स्वर्ण"
   },
   {
-    "question": "सूची-I तथा सूची-II को सुमेलित कीजिए:<br>A. गांधार कला &nbsp;&nbsp; 1. मिनांडर<br>B. जूनागढ़ शिलालेख &nbsp;&nbsp; 2. पतिक<br>C. मिलिंदपन्हो &nbsp;&nbsp; 3. कुषाण<br>D. तक्षशिला लेख &nbsp; 4. रुद्रदामन I",
-    "options": ["A1 B4 C3 D2", "A2 B1 C4 D3", "A3 B4 C1 D2", "A4 B2 C1 D3"],
-    "answer": "A3 B4 C1 D2"
+  "question": "सूची-I तथा सूची-II को सुमेलित कीजिए:<div class='match-grid'><span>A. गांधार कला</span><span>1. मिनांडर</span><span>B. जूनागढ़ शिलालेख</span><span>2. पतिक</span><span>C. मिलिंदपन्हो</span><span>3. कुषाण</span><span>D. तक्षशिला लेख</span><span>4. रुद्रदामन I</span></div>",
+  "options": ["A1 B4 C3 D2", "A2 B1 C4 D3", "A3 B4 C1 D2", "A4 B2 C1 D3"],
+  "answer": "A3 B4 C1 D2"
   },
   {
     "question": "अफगानिस्तान का बामियान प्रसिद्ध था-",
@@ -4071,9 +4071,9 @@
     "answer": "गौतमीपुत्र शातकर्णि"
   },
   {
-    "question": "निम्नलिखित को सुमेलित कीजिए:<br>A. शुंग &nbsp;&nbsp; 1. महोबा<br>B. सातवाहन &nbsp;&nbsp; 2. बनवासी<br>C. कदम्ब &nbsp;&nbsp; 3. पैठन<br>D. चन्देल &nbsp; 4. पाटलिपुत्र",
-    "options": ["A4 B3 C2 D1", "A2 B1 C4 D3", "A3 B4 C1 D2", "A4 B2 C1 D3"],
-    "answer": "A4 B3 C2 D1"
+  "question": "निम्नलिखित को सुमेलित कीजिए:<div class='match-grid'><span>A. शुंग</span><span>1. महोबा</span><span>B. सातवाहन</span><span>2. बनवासी</span><span>C. कदम्ब</span><span>3. पैठन</span><span>D. चन्देल</span><span>4. पाटलिपुत्र</span></div>",
+  "options": ["A4 B3 C2 D1", "A2 B1 C4 D3", "A3 B4 C1 D2", "A4 B2 C1 D3"],
+  "answer": "A4 B3 C2 D1"
   },
   {
     "question": "निम्नलिखित को कालक्रमानुसार व्यवस्थित कीजिए-<br>1. सातवाहन<br>2. वाकाटक<br>3. चालुक्य",
